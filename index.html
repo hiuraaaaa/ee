@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drachin - Watch Drama Online</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            line-height: 1.6;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: rgba(10, 10, 10, 0.98);
+            backdrop-filter: blur(20px);
+            padding: 15px 0;
+            border-bottom: 2px solid #e50914;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 30px rgba(229, 9, 20, 0.5);
+        }
+
+        .nav-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 2em;
+            font-weight: 900;
+            color: #e50914;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-shadow: 2px 2px 4px rgba(229, 9, 20, 0.5);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .nav-links a:hover {
+            background: #e50914;
+            transform: translateY(-2px);
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: linear-gradient(90deg, rgba(229,9,20,0.1) 0%, rgba(100,0,0,0.1) 100%);
+            padding: 12px 0;
+            text-align: center;
+            border-bottom: 1px solid rgba(229, 9, 20, 0.2);
+        }
+
+        .status-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            font-size: 0.95em;
+        }
+
+        .status-badge {
+            background: rgba(76, 175, 80, 0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            border: 1px solid #4caf50;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .source-badge {
+            background: rgba(229, 9, 20, 0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            border: 1px solid #e50914;
+            font-weight: 600;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 30px;
+        }
+
+        /* Slider Section */
+        .slider-section {
+            margin: 40px 0;
+            position: relative;
+        }
+
+        .slider-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            box-shadow: 0 10px 50px rgba(229, 9, 20, 0.3);
+        }
+
+        .slider-wrapper {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+
+        .slide {
+            min-width: 100%;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .slide-image-wrapper {
+            width: 100%;
+            height: 500px;
+            position: relative;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d1414 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .slide-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .slide-placeholder {
+            font-size: 6em;
+            opacity: 0.2;
+            z-index: 1;
+        }
+
+        .slide-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 40px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            z-index: 2;
+        }
+
+        .slide-badge {
+            display: inline-block;
+            background: #e50914;
+            padding: 6px 15px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .slider-controls {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        .slider-btn {
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #e50914;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: all 0.3s;
+            pointer-events: all;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slider-btn:hover {
+            background: #e50914;
+            transform: scale(1.1);
+        }
+
+        .slider-dots {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 3;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .dot.active {
+            background: #e50914;
+            width: 30px;
+            border-radius: 5px;
+        }
+
+        /* Section Header */
+        .section {
+            margin: 60px 0;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #e50914;
+        }
+
+        .section-title {
+            font-size: 2em;
+            font-weight: 900;
+            color: #e50914;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .view-all {
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 2px solid #e50914;
+            border-radius: 5px;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .view-all:hover {
+            background: #e50914;
+            transform: translateY(-2px);
+        }
+
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px;
+        }
+
+        .content-card {
+            background: #1a1a1a;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .content-card:hover {
+            transform: translateY(-10px) scale(1.03);
+            border-color: #e50914;
+            box-shadow: 0 20px 60px rgba(229, 9, 20, 0.5);
+        }
+
+        .content-poster-wrapper {
+            width: 100%;
+            height: 320px;
+            position: relative;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d1414 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .content-poster {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .content-card:hover .content-poster {
+            transform: scale(1.15);
+        }
+
+        .poster-placeholder {
+            font-size: 4em;
+            opacity: 0.2;
+            z-index: 1;
+        }
+
+        .content-info {
+            padding: 18px;
+        }
+
+        .content-title {
+            font-size: 1.05em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 2.8em;
+            line-height: 1.4;
+        }
+
+        .content-stats {
+            color: #999;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .content-stats::before {
+            content: "▶";
+            color: #e50914;
+            font-size: 1.1em;
+        }
+
+        /* Loading & Error */
+        .loading {
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .spinner {
+            border: 5px solid rgba(229, 9, 20, 0.3);
+            border-top: 5px solid #e50914;
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 30px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 1.3em;
+            color: #e50914;
+            font-weight: 600;
+        }
+
+        .error {
+            background: rgba(229, 9, 20, 0.1);
+            border: 2px solid #e50914;
+            color: #ff5252;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 40px 20px;
+        }
+
+        /* Footer */
+        footer {
+            background: #0a0a0a;
+            text-align: center;
+            padding: 50px 30px;
+            margin-top: 80px;
+            border-top: 3px solid #e50914;
+        }
+
+        .footer-text {
+            color: #999;
+            margin-bottom: 10px;
+        }
+
+        .creator-text {
+            color: #e50914;
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .slide-image-wrapper {
+                height: 400px;
+            }
+
+            .content-grid {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .logo {
+                font-size: 1.5em;
+            }
+
+            .section-title {
+                font-size: 1.5em;
+            }
+
+            .slide-image-wrapper {
+                height: 300px;
+            }
+
+            .slider-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2em;
+            }
+
+            .content-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+            }
+
+            .content-poster-wrapper {
+                height: 250px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 15px;
+            }
+
+            .content-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo">
+                🎬 DRACHIN
+            </div>
+            <div class="nav-links">
+                <a href="#slider">Home</a>
+                <a href="#latest">Latest</a>
+                <a href="#popular">Popular</a>
+                <a href="#genres">Genres</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-content">
+            <span>Created by <strong id="creatorName">Sanka Vollerei</strong></span>
+            <span class="status-badge">
+                ✅ <span id="statusText">Online</span>
+            </span>
+            <span class="source-badge" id="sourceBadge">
+                📺 Drachin
+            </span>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p class="loading-text">Loading awesome dramas...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="error" class="error" style="display: none;">
+        <h3>⚠️ Oops! Something went wrong</h3>
+        <p id="errorMessage"></p>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" style="display: none;">
+        <!-- Slider Section -->
+        <section class="slider-section">
+            <div class="slider-container">
+                <div class="slider-wrapper" id="sliderWrapper"></div>
+                
+                <div class="slider-controls">
+                    <button class="slider-btn" id="prevSlide">‹</button>
+                    <button class="slider-btn" id="nextSlide">›</button>
+                </div>
+
+                <div class="slider-dots" id="sliderDots"></div>
+            </div>
+        </section>
+
+        <!-- Latest Section -->
+        <div class="container">
+            <section id="latestSection" class="section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        ⚡ Latest Updates
+                    </h2>
+                    <a href="#" class="view-all">View All →</a>
+                </div>
+                <div id="latestGrid" class="content-grid"></div>
+            </section>
+
+            <!-- Popular Section -->
+            <section id="popularSection" class="section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        🔥 Popular Now
+                    </h2>
+                    <a href="#" class="view-all">View All →</a>
+                </div>
+                <div id="popularGrid" class="content-grid"></div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-text">
+            © 2026 Drachin. All rights reserved.
+        </div>
+        <div class="footer-text">
+            Powered by <span class="creator-text" id="footerCreator">Sanka Vollerei</span>
+        </div>
+    </footer>
+
+    <script>
+        // ===== SOLUSI CORS UNTUK POSTER =====
+        // Uncomment baris proxy di fungsi-fungsi create card
+        // const proxyImage = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+        // =====================================
+
+        // API Data
+        const apiData = {
+            "status": "success",
+            "creator": "Sanka Vollerei",
+            "source": "Drachin",
+            "data": {
+                "slider": [
+                    {
+                        "title": "",
+                        "slug": "42000001023-kala-penyesalan-mengetuk-hati-sulih-suara",
+                        "poster": "https://hwztchapter.dramaboxdb.com/data/cppartner/4x2/42x0/420x0/42000001023/42000001023.jpg?t=1764912858790",
+                        "episode_info": ""
+                    },
+                    {
+                        "title": "",
+                        "slug": "42000001866-jangan-bilang-kakakku-kau-pacarku-sulih-suara",
+                        "poster": "https://hwztchapter.dramaboxdb.com/data/cppartner/4x2/42x0/420x0/42000001866/42000001866.jpg?t=1766022342801",
+                        "episode_info": "Terbaru"
+                    },
+                    {
+                        "title": "",
+                        "slug": "41000115837-anak-pembawa-rezeki-datang-sulih-suara",
+                        "poster": "https://nchapter.dramaboxdb.com/data/cppartner/4x1/41x0/410x0/41000115837/41000115837.jpg?t=1747017293847",
+                        "episode_info": "Eksklusif"
+                    },
+                    {
+                        "title": "",
+                        "slug": "42000003974-cukup-sekali-ucapkan-selamat-tinggal-sulih-suara",
+                        "poster": "https://hwztchapter.dramaboxdb.com/data/cppartner/4x2/42x0/420x0/42000003974/42000003974.jpg?t=1768295429387",
+                        "episode_info": "Terbaru"
+                    },
+                    {
+                        "title": "",
+                        "slug": "41000111478-sembuhkan-papa-bawa-keberuntungan-sulih-suara",
+                        "poster": "https://hwztchapter.dramaboxdb.com/data/cppartner/4x1/41x0/410x0/41000111478/41000111478.jpg?t=1737019232590",
+                        "episode_info": "Sulih Suara"
+                    }
+                ],
+                "latest": [
+                    {
+                        "title": "Cinta Sejati Kencan Palsu (Sulih Suara)",
+                        "slug": "42000004031-cinta-sejati-kencan-palsu-sulih-suara",
+                        "poster": "https://hwztchapter.dramaboxdb.com/data/cppartner/4x2/42x0/420x0/42000004031/42000004031.jpg?t=1768377550487",
+                        "episode_info": "62 ep 20.5K"
+                    },
+                    {
+                        "title": "Hatiku Diretas Virus Cintamu (Sulih Suara)",
+                        "slug": "42000002605-hatiku-diretas-virus-cintamu-sulih-suara",
+                        "poster": "https://hwztchapter.dramaboxdb.com/data/cppartner/4x2/42x0/420x0/42000002605/42000002605.jpg?t=1766633119050",
+                        "episode_info": "53 ep 71.3K"
+                    },
+                    {
+                        "title": "Hati yang Tersesat (Sulih Suara)",
+                        "slug": "42000006057-hati-yang-tersesat-sulih-suara",
+                        "poster": "https://hwztchapter.dramaboxdb.com/data/cppartner/4x2/42x0/420x0/42000006057/42000006057.jpg?t=1770357375030",
+                        "episode_info": "50 ep 75.4K"
+                    },
+                    {
+                        "title": "Jodohku Manusia Serigala (Sulih Suara)",
+                        "slug": "42000001851-jodohku-manusia-serigala-sulih-suara",
+                        "poster": "https://hwztchapter.dramaboxdb.com/data/cppartner/4x2/42x0/420x0/42000001851/42000001851.jpg?t=1765965492215",
+                        "episode_info": "65 ep 79.1K"
+                    },
+                    {
+                        "title": "Cintaku Gagal Membuatmu Hangat (Sulih Suara)",
+                        "slug": "42000001340-cintaku-gagal-membuatmu-hangat-sulih-suara",
+                        "poster": "https://hwztchapter.dramaboxdb.com/data/cppartner/4x2/42x0/420x0/42000001340/42000001340.jpg?t=1765518703932",
+                        "episode_info": "82 ep 86.8K"
+                    },
+                    {
+                        "title": "Di Cintamu Hanya Ada Dusta (Sulih Suara)",
+                        "slug": "42000005043-di-cintamu-hanya-ada-dusta-sulih-suara",
+                        "poster": "https://hwztchapter.dramaboxdb.com/data/cppartner/4x2/42x0/420x0/42000005043/42000005043.jpg?t=1769578790330",
+                        "episode_info": "57 ep 86.8K"
+                    },
+                    {
+                        "title": "Kembalinya Sang Petinju (Sulih Suara)",
+                        "slug": "42000002890-kembalinya-sang-petinju-sulih-suara",
+                        "poster": "https://hwztchapter.dramaboxdb.com/data/cppartner/4x2/42x0/420x0/42000002890/42000002890.jpg?t=1766975931542",
+                        "episode_info": "72 ep 89.5K"
+                    },
+                    {
+                        "title": "Akhirnya, Aku Benaran Kehilanganmu (Sulih Suara)",
+                        "slug": "42000002601-akhirnya-aku-benaran-kehilanganmu-sulih-suara",
+                        "poster": "https://hwztchapter.dramaboxdb.com/data/cppartner/4x2/42x0/420x0/42000002601/42000002601.jpg?t=1766631018834",
+                        "episode_info": "88 ep 90.6K"
+                    }
+                ],
+                "popular": [
+                    {
+                        "title": "Bangkit dan Berkuasa (Sulih Suara)",
+                        "slug": "41000107468-bangkit-dan-berkuasa-sulih-suara",
+                        "poster": "https://nchapter.dramaboxdb.com/data/cppartner/4x1/41x0/410x0/41000107468/41000107468.jpg?t=1730961135113",
+                        "episode_info": "90 ep 107M"
+                    },
+                    {
+                        "title": "Kebangkitan Jiwa (Sulih Suara)",
+                        "slug": "41000106122-kebangkitan-jiwa-sulih-suara",
+                        "poster": "https://hwztchapter.dramaboxdb.com/data/cppartner/4x1/41x0/410x0/41000106122/41000106122.jpg?t=1726717304452",
+                        "episode_info": "87 ep 94.9M"
+                    },
+                    {
+                        "title": "Mengharumkan Nama Kampung Halaman (Sulih Suara)",
+                        "slug": "41000105821-mengharumkan-nama-kampung-halaman-sulih-suara",
+                        "poster": "https://nchapter.dramaboxdb.com/data/cppartner/4x1/41x0/410x0/41000105821/41000105821.jpg?t=1725418709786",
+                        "episode_info": "89 ep 63.3M"
+                    },
+                    {
+                        "title": "Kaisar Pulang ke Desa (Sulih Suara)",
+                        "slug": "41000112448-kaisar-pulang-ke-desa-sulih-suara",
+                        "poster": "https://nchapter.dramaboxdb.com/data/cppartner/4x1/41x0/410x0/41000112448/41000112448.jpg?t=1739778636684",
+                        "episode_info": "63 ep 47M"
+                    },
+                    {
+                        "title": "Legenda Tak Terkalahkan (Sulih Suara)",
+                        "slug": "41000107219-legenda-tak-terkalahkan-sulih-suara",
+                        "poster": "https://hwztchapter.dramaboxdb.com/data/cppartner/4x1/41x0/410x0/41000107219/41000107219.jpg?t=1730259959168",
+                        "episode_info": "94 ep 41.6M"
+                    },
+                    {
+                        "title": "Rahasia di Balik Orang Tua Sederhana (Sulih Suara)",
+                        "slug": "41000113749-rahasia-di-balik-orang-tua-sederhana-sulih-suara",
+                        "poster": "https://hwztchapter.dramaboxdb.com/data/cppartner/4x1/41x0/410x0/41000113749/41000113749.jpg?t=1742457399178",
+                        "episode_info": "89 ep 32.2M"
+                    }
+                ]
+            }
+        };
+
+        // Slider functionality
+        let currentSlide = 0;
+        let sliderInterval;
+
+        function createSlide(item, index) {
+            const baseUrl = 'https://drachin.net/drama/';
+            // Use Vercel proxy to bypass CORS
+            const proxyPoster = `/api/proxy?url=${encodeURIComponent(item.poster)}`;
+
+            return `
+                <div class="slide" onclick="window.open('${baseUrl}${item.slug}', '_blank')">
+                    <div class="slide-image-wrapper">
+                        <div class="slide-placeholder">🎬</div>
+                        <img src="${proxyPoster}" 
+                             alt="${item.title || 'Drama'}" 
+                             class="slide-image"
+                             loading="${index === 0 ? 'eager' : 'lazy'}"
+                             onerror="this.style.opacity='0'">
+                    </div>
+                    ${item.episode_info ? `
+                        <div class="slide-overlay">
+                            <span class="slide-badge">${item.episode_info}</span>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function createContentCard(item) {
+            const baseUrl = 'https://drachin.net/drama/';
+            // Use Vercel proxy to bypass CORS
+            const proxyPoster = `/api/proxy?url=${encodeURIComponent(item.poster)}`;
+
+            return `
+                <a href="${baseUrl}${item.slug}" target="_blank" class="content-card">
+                    <div class="content-poster-wrapper">
+                        <div class="poster-placeholder">📺</div>
+                        <img src="${proxyPoster}" 
+                             alt="${item.title}" 
+                             class="content-poster"
+                             loading="lazy"
+                             onerror="this.style.opacity='0'">
+                    </div>
+                    <div class="content-info">
+                        <div class="content-title">${item.title}</div>
+                        <div class="content-stats">${item.episode_info}</div>
+                    </div>
+                </a>
+            `;
+        }
+
+        function goToSlide(index) {
+            const slider = document.getElementById('sliderWrapper');
+            const dots = document.querySelectorAll('.dot');
+            const totalSlides = apiData.data.slider.length;
+            
+            currentSlide = (index + totalSlides) % totalSlides;
+            slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+            
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === currentSlide);
+            });
+        }
+
+        function nextSlide() {
+            goToSlide(currentSlide + 1);
+        }
+
+        function prevSlide() {
+            goToSlide(currentSlide - 1);
+        }
+
+        function startAutoSlide() {
+            sliderInterval = setInterval(nextSlide, 5000);
+        }
+
+        function stopAutoSlide() {
+            clearInterval(sliderInterval);
+        }
+
+        // Render Data
+        function renderData(data) {
+            const loadingEl = document.getElementById('loading');
+            const errorEl = document.getElementById('error');
+            const mainContent = document.getElementById('mainContent');
+
+            try {
+                // Update header info
+                if (data.creator) {
+                    document.getElementById('creatorName').textContent = data.creator;
+                    document.getElementById('footerCreator').textContent = data.creator;
+                }
+
+                if (data.source) {
+                    document.getElementById('sourceBadge').innerHTML = `📺 ${data.source}`;
+                }
+
+                if (data.status === 'success') {
+                    document.getElementById('statusText').textContent = 'Online';
+                }
+
+                // Render Slider
+                if (data.data.slider && data.data.slider.length > 0) {
+                    const sliderHTML = data.data.slider.map((item, index) => createSlide(item, index)).join('');
+                    document.getElementById('sliderWrapper').innerHTML = sliderHTML;
+
+                    // Create dots
+                    const dotsHTML = data.data.slider.map((_, index) => 
+                        `<span class="dot ${index === 0 ? 'active' : ''}" onclick="goToSlide(${index})"></span>`
+                    ).join('');
+                    document.getElementById('sliderDots').innerHTML = dotsHTML;
+
+                    // Setup controls
+                    document.getElementById('prevSlide').onclick = prevSlide;
+                    document.getElementById('nextSlide').onclick = nextSlide;
+
+                    // Start auto slide
+                    startAutoSlide();
+
+                    // Pause on hover
+                    const sliderContainer = document.querySelector('.slider-container');
+                    sliderContainer.addEventListener('mouseenter', stopAutoSlide);
+                    sliderContainer.addEventListener('mouseleave', startAutoSlide);
+                }
+
+                // Render Latest
+                if (data.data.latest && data.data.latest.length > 0) {
+                    const latestHTML = data.data.latest.map(item => createContentCard(item)).join('');
+                    document.getElementById('latestGrid').innerHTML = latestHTML;
+                }
+
+                // Render Popular
+                if (data.data.popular && data.data.popular.length > 0) {
+                    const popularHTML = data.data.popular.map(item => createContentCard(item)).join('');
+                    document.getElementById('popularGrid').innerHTML = popularHTML;
+                }
+
+                // Show content
+                loadingEl.style.display = 'none';
+                mainContent.style.display = 'block';
+
+            } catch (error) {
+                loadingEl.style.display = 'none';
+                errorEl.style.display = 'block';
+                document.getElementById('errorMessage').textContent = error.message;
+                console.error('Render error:', error);
+            }
+        }
+
+        // Initial Load
+        setTimeout(() => {
+            renderData(apiData);
+        }, 1000);
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            stopAutoSlide();
+        });
+
+        // ===== FETCH FROM REAL API =====
+        // Uncomment untuk fetch dari API asli:
+        /*
+        async function fetchData() {
+            try {
+                const response = await fetch('https://www.sankavollerei.com/anime/drachin/home');
+                const data = await response.json();
+                renderData(data);
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('errorMessage').textContent = 'Failed to load data: ' + error.message;
+            }
+        }
+
+        fetchData();
+        */
+    </script>
+</body>
+</html>
+
