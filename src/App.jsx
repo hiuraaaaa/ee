@@ -79,6 +79,77 @@ function App() {
     return () => clearInterval(interval)
   }, [bannerData.length])
 
+  // 🛡️ AD BLOCKER - Block Popups & Overlays
+  useEffect(() => {
+    // Block popup links
+    const blockPopup = (e) => {
+      if (e.target.tagName === 'A' && e.target.target === '_blank') {
+        const url = e.target.href || ''
+        const adDomains = ['adsterra', 'popads', 'propellerads', 'exoclick', 'clickadu', 'popcash']
+        if (adDomains.some(domain => url.toLowerCase().includes(domain))) {
+          e.preventDefault()
+          e.stopPropagation()
+          console.log('🛡️ Blocked ad popup:', url)
+          return false
+        }
+      }
+    }
+
+    // Block window.open
+    const originalOpen = window.open
+    window.open = function(...args) {
+      const url = String(args[0] || '')
+      const adDomains = ['adsterra', 'popads', 'propellerads', 'exoclick', 'clickadu', 'popcash']
+      
+      if (adDomains.some(domain => url.toLowerCase().includes(domain))) {
+        console.log('🛡️ Blocked popup window:', url)
+        return null
+      }
+      return originalOpen.apply(this, args)
+    }
+
+    // Remove annoying overlays & captcha popups
+    const removeOverlays = setInterval(() => {
+      // Remove by class/id
+      const selectors = [
+        '[class*="overlay"]',
+        '[id*="popup"]',
+        '[class*="ad-"]',
+        '[class*="captcha"]',
+        '[id*="captcha"]',
+        'div[style*="position: fixed"]'
+      ]
+      
+      selectors.forEach(selector => {
+        try {
+          const elements = document.querySelectorAll(selector)
+          elements.forEach(el => {
+            const text = el.textContent.toLowerCase()
+            const hasAdText = text.includes('robot') || 
+                            text.includes('verif') || 
+                            text.includes('captcha') ||
+                            text.includes('bukan robot')
+            
+            if (hasAdText && el.parentElement) {
+              console.log('🛡️ Removed overlay:', el.className)
+              el.remove()
+            }
+          })
+        } catch (e) {
+          // Silent fail
+        }
+      })
+    }, 1000)
+
+    document.addEventListener('click', blockPopup, true)
+    
+    return () => {
+      document.removeEventListener('click', blockPopup, true)
+      window.open = originalOpen
+      clearInterval(removeOverlays)
+    }
+  }, [])
+
   // API Functions
   const loadLatest = async () => {
     setLoading(true)
@@ -89,7 +160,7 @@ function App() {
       
       if (data.success && data.results) {
         setAnimeData(data.results)
-        setBannerData(data.results.slice(0, 5)) // Top 5 for banner
+        setBannerData(data.results.slice(0, 5))
         setCurrentPage('latest')
       } else {
         setError('Failed to load data')
