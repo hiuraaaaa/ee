@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 // Import ikon Lucide
 import { 
-  Home, 
+  Home as HomeIcon, 
   Flame, 
   Star, 
   Heart, 
@@ -26,7 +26,10 @@ import {
   Mail,
   PlayCircle,
   BookOpen,
-  MonitorPlay
+  MonitorPlay,
+  CalendarDays,
+  ChevronRight,
+  TrendingUp
 } from 'lucide-react'
 
 // Import Loading Page
@@ -73,114 +76,181 @@ const saveFavorites = (favorites) => {
   }
 }
 
+// Komponen Anime Card
+const AnimeCard = ({ anime, isFavorite, onToggleFavorite, onClick }) => {
+  const imageUrl = anime.image || anime.img
+  const duration = anime.duration
+  const uploadDate = anime.upload
+  const genres = anime.genre || []
+
+  return (
+    <div className="anime-card" onClick={onClick}>
+      <div className="card-image-wrapper">
+        {getBadge(anime.title)}
+        
+        <button
+          className={`favorite-btn ${isFavorite ? 'active' : ''}`}
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggleFavorite()
+          }}
+        >
+          <Heart size={16} fill={isFavorite ? "currentColor" : "none"} />
+        </button>
+
+        {duration && (
+          <div className="card-duration">
+            <Clock size={10} /> {duration}
+          </div>
+        )}
+
+        <img
+          src={proxyImage(imageUrl)}
+          alt={anime.title}
+          className="card-image"
+          loading="lazy"
+          onError={(e) => e.target.style.display = 'none'}
+        />
+      </div>
+
+      <div className="card-content">
+        <div className="card-title">{anime.title}</div>
+        
+        {uploadDate && (
+          <div className="card-info">
+            <Calendar size={10} /> {uploadDate}
+          </div>
+        )}
+
+        {genres.length > 0 && (
+          <div className="genre-pills">
+            {genres.slice(0, 2).map((genre, idx) => (
+              genre && <span key={idx} className="genre-pill"><Hash size={8} /> {genre}</span>
+            ))}
+            {genres.length > 2 && (
+              <span className="genre-pill">+{genres.length - 2}</span>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function App() {
   // State
-  const [currentPage, setCurrentPage] = useState('latest')
+  const [currentPage, setCurrentPage] = useState('home')
+  const [homeData, setHomeData] = useState({
+    banner: [],
+    latest: [],
+    releases: [],
+    popular: []
+  })
   const [animeData, setAnimeData] = useState([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState({
+    home: true,
+    page: false,
+    loadingMore: false
+  })
   const [error, setError] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedAnime, setSelectedAnime] = useState(null)
   const [currentStream, setCurrentStream] = useState(0)
   const [favorites, setFavorites] = useState(getFavorites())
   const [bannerIndex, setBannerIndex] = useState(0)
-  const [bannerData, setBannerData] = useState([])
   const [showDetail, setShowDetail] = useState(false)
+  
+  // State untuk pagination
+  const [releasePages, setReleasePages] = useState({
+    currentPage: 1,
+    totalPages: 10,
+    data: []
+  })
 
   // Page titles
   const pageTitles = {
-    latest: { title: 'Latest Anime', icon: Home },
-    release: { title: 'Latest Releases', icon: Flame },
+    home: { title: 'Home', icon: HomeIcon },
+    latest: { title: 'Latest Anime', icon: Flame },
+    release: { title: 'New Releases', icon: CalendarDays },
     favorites: { title: 'My Favorites', icon: Star },
     search: { title: 'Search Results', icon: Search }
   }
 
-  // Load initial data
-  useEffect(() => {
-    loadLatest()
-  }, [])
+  // ===== LOAD MULTI-PAGE RELEASES =====
+  const loadAllReleases = async (maxPages = 5) => {
+    try {
+      const allReleases = []
+      for (let page = 1; page <= maxPages; page++) {
+        const response = await fetch(`${API_BASE}/release/${page}`)
+        const data = await response.json()
+        if (data.data) {
+          allReleases.push(...data.data)
+        }
+        // Small delay biar ga overload
+        await new Promise(resolve => setTimeout(resolve, 100))
+      }
+      return allReleases
+    } catch (error) {
+      console.error('Error loading multi-page releases:', error)
+      return []
+    }
+  }
 
-  // Auto-slide banner
-  useEffect(() => {
-    if (bannerData.length === 0) return
+  // ===== LOAD HOME DATA =====
+  const loadHomeData = async () => {
+    setLoading(prev => ({ ...prev, home: true }))
+    setError(null)
     
-    const interval = setInterval(() => {
-      setBannerIndex((prev) => (prev + 1) % bannerData.length)
-    }, 5000)
+    try {
+      // Fetch data secara paralel
+      const [latestResponse, releaseResponse, allReleases] = await Promise.all([
+        fetch(`${API_BASE}/latest`),
+        fetch(`${API_BASE}/release/1`),
+        loadAllReleases(5) // Ambil 5 halaman release
+      ])
 
-    return () => clearInterval(interval)
-  }, [bannerData.length])
+      const latestData = await latestResponse.json()
+      const releaseData = await releaseResponse.json()
 
-  // 🛡️ AD BLOCKER - Block Popups & Overlays
-  useEffect(() => {
-    const blockPopup = (e) => {
-      if (e.target.tagName === 'A' && e.target.target === '_blank') {
-        const url = e.target.href || ''
-        const adDomains = ['adsterra', 'popads', 'propellerads', 'exoclick', 'clickadu', 'popcash']
-        if (adDomains.some(domain => url.toLowerCase().includes(domain))) {
-          e.preventDefault()
-          e.stopPropagation()
-          console.log('🛡️ Blocked ad popup:', url)
-          return false
-        }
-      }
-    }
-
-    const originalOpen = window.open
-    window.open = function(...args) {
-      const url = String(args[0] || '')
-      const adDomains = ['adsterra', 'popads', 'propellerads', 'exoclick', 'clickadu', 'popcash']
+      // Banner dari page 1 release (5 item)
+      const bannerItems = releaseData.data?.slice(0, 5) || []
       
-      if (adDomains.some(domain => url.toLowerCase().includes(domain))) {
-        console.log('🛡️ Blocked popup window:', url)
-        return null
-      }
-      return originalOpen.apply(this, args)
-    }
-
-    const removeOverlays = setInterval(() => {
-      const selectors = [
-        '[class*="overlay"]',
-        '[id*="popup"]',
-        '[class*="ad-"]',
-        '[class*="captcha"]',
-        '[id*="captcha"]',
-        'div[style*="position: fixed"]'
-      ]
+      // Latest (8 item)
+      const latestItems = latestData.success ? latestData.results.slice(0, 8) : []
       
-      selectors.forEach(selector => {
-        try {
-          const elements = document.querySelectorAll(selector)
-          elements.forEach(el => {
-            const text = el.textContent.toLowerCase()
-            const hasAdText = text.includes('robot') || 
-                            text.includes('verif') || 
-                            text.includes('captcha') ||
-                            text.includes('bukan robot')
-            
-            if (hasAdText && el.parentElement) {
-              console.log('🛡️ Removed overlay:', el.className)
-              el.remove()
-            }
-          })
-        } catch (e) {
-          // Silent fail
-        }
+      // All releases dari multi-page (unique)
+      const uniqueReleases = Array.from(
+        new Map(allReleases.map(item => [item.link || item.url, item])).values()
+      ).slice(0, 16)
+
+      // Popular (mix dari latest dan releases)
+      const popularItems = [
+        ...(latestData.success ? latestData.results.slice(0, 4) : []),
+        ...(allReleases.slice(0, 4) || [])
+      ].slice(0, 8)
+
+      setHomeData({
+        banner: bannerItems,
+        latest: latestItems,
+        releases: uniqueReleases,
+        popular: popularItems
       })
-    }, 1000)
 
-    document.addEventListener('click', blockPopup, true)
-    
-    return () => {
-      document.removeEventListener('click', blockPopup, true)
-      window.open = originalOpen
-      clearInterval(removeOverlays)
+      setReleasePages(prev => ({
+        ...prev,
+        data: allReleases
+      }))
+
+    } catch (err) {
+      setError(`Error loading home: ${err.message}`)
+    } finally {
+      setLoading(prev => ({ ...prev, home: false }))
     }
-  }, [])
+  }
 
-  // API Functions
+  // ===== LOAD LATEST PAGE =====
   const loadLatest = async () => {
-    setLoading(true)
+    setLoading(prev => ({ ...prev, page: true }))
     setError(null)
     try {
       const response = await fetch(`${API_BASE}/latest`)
@@ -188,43 +258,49 @@ function App() {
       
       if (data.success && data.results) {
         setAnimeData(data.results)
-        setBannerData(data.results.slice(0, 5))
         setCurrentPage('latest')
-      } else {
-        setError('Failed to load data')
       }
     } catch (err) {
       setError(`Error: ${err.message}`)
     } finally {
-      setLoading(false)
+      setLoading(prev => ({ ...prev, page: false }))
     }
   }
 
+  // ===== LOAD RELEASE PAGE =====
   const loadRelease = async () => {
-    setLoading(true)
+    setLoading(prev => ({ ...prev, page: true }))
     setError(null)
     try {
-      const response = await fetch(`${API_BASE}/release/1`)
-      const data = await response.json()
-      
-      if (data.data) {
-        setAnimeData(data.data)
-        setBannerData(data.data.slice(0, 5))
-        setCurrentPage('release')
-      } else {
-        setError('Failed to load data')
+      // Ambil semua release pages untuk halaman release
+      const allReleases = []
+      for (let page = 1; page <= 10; page++) {
+        const response = await fetch(`${API_BASE}/release/${page}`)
+        const data = await response.json()
+        if (data.data) {
+          allReleases.push(...data.data)
+        }
       }
+      
+      // Filter duplikat
+      const uniqueReleases = Array.from(
+        new Map(allReleases.map(item => [item.link || item.url, item])).values()
+      )
+      
+      setAnimeData(uniqueReleases)
+      setCurrentPage('release')
     } catch (err) {
       setError(`Error: ${err.message}`)
     } finally {
-      setLoading(false)
+      setLoading(prev => ({ ...prev, page: false }))
     }
   }
 
+  // ===== SEARCH =====
   const performSearch = async () => {
     if (!searchQuery.trim()) return
     
-    setLoading(true)
+    setLoading(prev => ({ ...prev, page: true }))
     setError(null)
     try {
       const response = await fetch(`${API_BASE}/search/${encodeURIComponent(searchQuery)}`)
@@ -232,7 +308,6 @@ function App() {
       
       if (data.data) {
         setAnimeData(data.data)
-        setBannerData([])
         setCurrentPage('search')
       } else {
         setError('No results found')
@@ -240,12 +315,13 @@ function App() {
     } catch (err) {
       setError(`Error: ${err.message}`)
     } finally {
-      setLoading(false)
+      setLoading(prev => ({ ...prev, page: false }))
     }
   }
 
+  // ===== LOAD DETAIL =====
   const loadDetail = async (url) => {
-    setLoading(true)
+    setLoading(prev => ({ ...prev, page: true }))
     setError(null)
     setShowDetail(true)
     window.scrollTo(0, 0)
@@ -266,7 +342,7 @@ function App() {
       setSelectedAnime(null)
       setShowDetail(false)
     } finally {
-      setLoading(false)
+      setLoading(prev => ({ ...prev, page: false }))
     }
   }
 
@@ -293,31 +369,329 @@ function App() {
 
   const showFavorites = () => {
     setAnimeData(favorites)
-    setBannerData([])
     setCurrentPage('favorites')
+  }
+
+  // Search di favorites
+  const searchInFavorites = () => {
+    if (!searchQuery.trim()) {
+      setAnimeData(favorites)
+      return
+    }
+    
+    const filtered = favorites.filter(anime => 
+      anime.title.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    setAnimeData(filtered)
   }
 
   // Navigation handlers
   const handleNavigation = (page) => {
-    if (page === 'latest') loadLatest()
-    else if (page === 'release') loadRelease()
-    else if (page === 'favorites') showFavorites()
+    if (page === 'home') {
+      setCurrentPage('home')
+      window.scrollTo(0, 0)
+    } else if (page === 'latest') {
+      loadLatest()
+    } else if (page === 'release') {
+      loadRelease()
+    } else if (page === 'favorites') {
+      showFavorites()
+    }
   }
 
   // Handle search key press
   const handleSearchKeyPress = (e) => {
-    if (e.key === 'Enter') performSearch()
+    if (e.key === 'Enter') {
+      if (currentPage === 'favorites') {
+        searchInFavorites()
+      } else {
+        performSearch()
+      }
+    }
   }
 
+  // Handle search button click
+  const handleSearchClick = () => {
+    if (currentPage === 'favorites') {
+      searchInFavorites()
+    } else {
+      performSearch()
+    }
+  }
+
+  // Load home data on initial render
+  useEffect(() => {
+    loadHomeData()
+  }, [])
+
+  // Auto-slide banner hanya di home
+  useEffect(() => {
+    if (currentPage !== 'home' || homeData.banner.length === 0) return
+    
+    const interval = setInterval(() => {
+      setBannerIndex((prev) => (prev + 1) % homeData.banner.length)
+    }, 5000)
+
+    return () => clearInterval(interval)
+  }, [currentPage, homeData.banner.length])
+
   // Get current page info
-  const PageIcon = pageTitles[currentPage]?.icon || Home
-  const currentPageInfo = pageTitles[currentPage] || pageTitles.latest
+  const PageIcon = pageTitles[currentPage]?.icon || HomeIcon
+
+  // ===== RENDER HOME PAGE =====
+  const renderHomePage = () => {
+    if (loading.home) return <LoadingPage />
+
+    return (
+      <>
+        {/* Banner hanya di HOME */}
+        {homeData.banner.length > 0 && (
+          <div className="banner-container">
+            <div className="banner-slider" style={{ transform: `translateX(-${bannerIndex * 100}%)` }}>
+              {homeData.banner.map((anime, index) => (
+                <div 
+                  key={index} 
+                  className="banner-slide"
+                  onClick={() => loadDetail(anime.link || anime.url)}
+                >
+                  <img 
+                    src={proxyImage(anime.image || anime.img)} 
+                    alt={anime.title}
+                    className="banner-image"
+                  />
+                  <div className="banner-content">
+                    <h2 className="banner-title">{anime.title}</h2>
+                    <p className="banner-info">
+                      {anime.upload || anime.duration || 'Click to watch'}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="banner-dots">
+              {homeData.banner.map((_, index) => (
+                <div
+                  key={index}
+                  className={`banner-dot ${index === bannerIndex ? 'active' : ''}`}
+                  onClick={() => setBannerIndex(index)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="container">
+          {/* Search Bar */}
+          <div className="search-section">
+            <div className="search-bar">
+              <Search size={18} className="search-icon" />
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Cari anime..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={handleSearchKeyPress}
+              />
+              <button className="search-btn" onClick={handleSearchClick}>
+                Cari
+              </button>
+            </div>
+          </div>
+
+          {/* Section Latest */}
+          <section className="home-section">
+            <div className="section-header">
+              <h2 className="section-title">
+                <Flame size={20} className="section-icon" />
+                Latest Anime
+              </h2>
+              <button 
+                className="view-all-btn"
+                onClick={() => handleNavigation('latest')}
+              >
+                Lihat Semua <ChevronRight size={16} />
+              </button>
+            </div>
+            
+            {homeData.latest.length > 0 ? (
+              <div className="anime-grid">
+                {homeData.latest.map((anime, index) => (
+                  <AnimeCard 
+                    key={index}
+                    anime={anime}
+                    isFavorite={isFavorite(anime)}
+                    onToggleFavorite={() => toggleFavorite(anime)}
+                    onClick={() => loadDetail(anime.link || anime.url)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="section-empty">Tidak ada anime terbaru</div>
+            )}
+          </section>
+
+          {/* Section Releases with Special Layout */}
+          <section className="home-section release-special">
+            <div className="section-header">
+              <h2 className="section-title">
+                <CalendarDays size={20} className="section-icon" />
+                New Releases
+              </h2>
+              <button 
+                className="view-all-btn"
+                onClick={() => handleNavigation('release')}
+              >
+                Lihat Semua <ChevronRight size={16} />
+              </button>
+            </div>
+
+            {homeData.releases.length > 0 && (
+              <div className="release-special-layout">
+                {/* Card Besar di Kiri */}
+                <div className="release-featured">
+                  <AnimeCard 
+                    anime={homeData.releases[0]}
+                    isFavorite={isFavorite(homeData.releases[0])}
+                    onToggleFavorite={() => toggleFavorite(homeData.releases[0])}
+                    onClick={() => loadDetail(homeData.releases[0].link || homeData.releases[0].url)}
+                  />
+                </div>
+
+                {/* Card Kecil Scroll Horizontal di Kanan */}
+                <div className="release-horizontal-scroll">
+                  {homeData.releases.slice(1, 8).map((anime, index) => (
+                    <div key={index} className="horizontal-card">
+                      <div className="horizontal-card-image" onClick={() => loadDetail(anime.link || anime.url)}>
+                        <img src={proxyImage(anime.image || anime.img)} alt={anime.title} />
+                        <button
+                          className={`favorite-btn-small ${isFavorite(anime) ? 'active' : ''}`}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            toggleFavorite(anime)
+                          }}
+                        >
+                          <Heart size={12} fill={isFavorite(anime) ? "currentColor" : "none"} />
+                        </button>
+                      </div>
+                      <div className="horizontal-card-content" onClick={() => loadDetail(anime.link || anime.url)}>
+                        <h4 className="horizontal-card-title">{anime.title}</h4>
+                        <div className="horizontal-card-genres">
+                          {anime.genre?.slice(0, 2).map((g, i) => (
+                            <span key={i} className="genre-tag-mini">{g}</span>
+                          ))}
+                        </div>
+                        <div className="horizontal-card-meta">
+                          <Clock size={8} /> {anime.duration || 'N/A'}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+
+          {/* Section Popular (Opsional) */}
+          {homeData.popular.length > 0 && (
+            <section className="home-section">
+              <div className="section-header">
+                <h2 className="section-title">
+                  <TrendingUp size={20} className="section-icon" />
+                  Popular This Week
+                </h2>
+              </div>
+              
+              <div className="anime-grid">
+                {homeData.popular.map((anime, index) => (
+                  <AnimeCard 
+                    key={index}
+                    anime={anime}
+                    isFavorite={isFavorite(anime)}
+                    onToggleFavorite={() => toggleFavorite(anime)}
+                    onClick={() => loadDetail(anime.link || anime.url)}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+      </>
+    )
+  }
+
+  // ===== RENDER REGULAR PAGE (Latest, Release, Favorites) =====
+  const renderRegularPage = () => {
+    if (loading.page) return <LoadingPage />
+
+    return (
+      <div className="container">
+        <div className="page-header">
+          <PageIcon size={24} className="page-icon" />
+          <h1 className="page-title">{pageTitles[currentPage]?.title}</h1>
+        </div>
+
+        {/* Search Bar - Ada di semua halaman */}
+        <div className="search-section">
+          <div className="search-bar">
+            <Search size={18} className="search-icon" />
+            <input
+              type="text"
+              className="search-input"
+              placeholder={currentPage === 'favorites' ? "Cari di favorites..." : "Cari anime..."}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={handleSearchKeyPress}
+            />
+            <button className="search-btn" onClick={handleSearchClick}>
+              Cari
+            </button>
+          </div>
+        </div>
+
+        {error && !loading.page && (
+          <div className="error">
+            <AlertCircle size={20} />
+            <h3>{error}</h3>
+          </div>
+        )}
+
+        {!loading.page && !error && (
+          <>
+            {animeData.length === 0 ? (
+              <div className="empty-state">
+                <Tv size={48} className="empty-icon" />
+                <p className="empty-text">
+                  {currentPage === 'favorites' 
+                    ? 'Belum ada anime favorit' 
+                    : 'Tidak ada anime ditemukan'}
+                </p>
+              </div>
+            ) : (
+              <div className="anime-grid">
+                {animeData.map((anime, index) => (
+                  <AnimeCard 
+                    key={index}
+                    anime={anime}
+                    isFavorite={isFavorite(anime)}
+                    onToggleFavorite={() => toggleFavorite(anime)}
+                    onClick={() => loadDetail(anime.link || anime.url)}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="app">
-      {/* Tampilkan LoadingPage saat loading dan tidak dalam mode detail */}
-      {loading && !showDetail && <LoadingPage />}
+      {/* Loading Page untuk initial load */}
+      {loading.home && currentPage === 'home' && <LoadingPage />}
 
+      {/* Detail Page */}
       {showDetail && selectedAnime ? (
         <div className="detail-page">
           <header className="detail-header-nav">
@@ -325,7 +699,7 @@ function App() {
               setShowDetail(false)
               setSelectedAnime(null)
             }}>
-              <ArrowLeft size={20} /> Back
+              <ArrowLeft size={20} /> Kembali
             </button>
             <div className="logo-detail">
               <Film size={24} className="logo-icon" />
@@ -333,10 +707,9 @@ function App() {
             </div>
           </header>
 
-          {/* Loading di detail page tetap menggunakan spinner biasa */}
-          {loading ? (
+          {loading.page ? (
             <div className="loading">
-              <Loader2 size={48} className="spinner" />
+              <Loader2 size={40} className="spinner" />
               <p className="loading-text">Loading...</p>
             </div>
           ) : (
@@ -345,12 +718,12 @@ function App() {
                 <h1 className="detail-title">{selectedAnime.title}</h1>
                 <div className="detail-meta">
                   {selectedAnime.info}<br />
-                  <Clock size={16} /> Duration: {selectedAnime.duration || 'N/A'} | <Download size={16} /> Size: {selectedAnime.size || 'N/A'}
+                  <Clock size={14} /> Durasi: {selectedAnime.duration || 'N/A'} | <Download size={14} /> Ukuran: {selectedAnime.size || 'N/A'}
                 </div>
                 {selectedAnime.genre && (
                   <div className="detail-genres">
                     {selectedAnime.genre.split(',').map((genre, idx) => (
-                      <span key={idx} className="genre-tag"><Hash size={12} /> {genre.trim()}</span>
+                      <span key={idx} className="genre-tag"><Hash size={10} /> {genre.trim()}</span>
                     ))}
                   </div>
                 )}
@@ -359,7 +732,7 @@ function App() {
               <div className="detail-body">
                 {selectedAnime.streams && selectedAnime.streams.length > 0 && (
                   <div className="detail-section">
-                    <h3 className="section-title"><PlayCircle size={20} /> Watch Online</h3>
+                    <h3 className="section-title"><PlayCircle size={18} /> Watch Online</h3>
                     <div className="stream-tabs">
                       {selectedAnime.streams.map((stream, idx) => (
                         <button
@@ -382,13 +755,13 @@ function App() {
                 )}
 
                 <div className="detail-section">
-                  <h3 className="section-title"><BookOpen size={20} /> Synopsis</h3>
-                  <p className="synopsis-text">{selectedAnime.sinopsis || 'No synopsis available'}</p>
+                  <h3 className="section-title"><BookOpen size={18} /> Sinopsis</h3>
+                  <p className="synopsis-text">{selectedAnime.sinopsis || 'Tidak ada sinopsis'}</p>
                 </div>
 
                 {selectedAnime.download && selectedAnime.download.length > 0 && (
                   <div className="detail-section">
-                    <h3 className="section-title"><Download size={20} /> Download</h3>
+                    <h3 className="section-title"><Download size={18} /> Download</h3>
                     {selectedAnime.download.map((quality, idx) => (
                       <div key={idx} className="download-quality">
                         <h4 className="quality-title">
@@ -404,7 +777,7 @@ function App() {
                               rel="noopener noreferrer"
                               className="download-link"
                             >
-                              <Download size={14} /> {link.name}
+                              <Download size={12} /> {link.name}
                             </a>
                           ))}
                         </div>
@@ -417,258 +790,107 @@ function App() {
           )}
         </div>
       ) : (
-        /* Hanya tampilkan konten utama jika tidak loading */
-        !loading && (
-          <>
-            <header className="main-header">
-              <div className="logo">
-                <Film size={28} className="logo-icon" />
-                <span className="logo-text">LuminNhent4i</span>
-              </div>
-            </header>
-
-            {(currentPage === 'latest' || currentPage === 'release') && bannerData.length > 0 && (
-              <div className="banner-container">
-                <div className="banner-slider" style={{ transform: `translateX(-${bannerIndex * 100}%)` }}>
-                  {bannerData.map((anime, index) => (
-                    <div 
-                      key={index} 
-                      className="banner-slide"
-                      onClick={() => loadDetail(anime.link || anime.url)}
-                    >
-                      <img 
-                        src={proxyImage(anime.image || anime.img)} 
-                        alt={anime.title}
-                        className="banner-image"
-                        onError={(e) => e.target.style.display = 'none'}
-                      />
-                      <div className="banner-content">
-                        <h2 className="banner-title">{anime.title}</h2>
-                        <p className="banner-info">
-                          {anime.upload || anime.duration || 'Click to watch'}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="banner-dots">
-                  {bannerData.map((_, index) => (
-                    <div
-                      key={index}
-                      className={`banner-dot ${index === bannerIndex ? 'active' : ''}`}
-                      onClick={() => setBannerIndex(index)}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="container">
-              <div className="page-header">
-                <PageIcon size={24} className="page-icon" />
-                <h1 className="page-title">{currentPageInfo.title}</h1>
-              </div>
-
-              <div className="search-section">
-                <div className="search-bar">
-                  <Search size={20} className="search-icon" />
-                  <input
-                    type="text"
-                    className="search-input"
-                    placeholder="Search anime..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyPress={handleSearchKeyPress}
-                  />
-                  <button className="search-btn" onClick={performSearch}>
-                    Search
-                  </button>
-                </div>
-              </div>
-
-              {error && !loading && (
-                <div className="error">
-                  <AlertCircle size={24} />
-                  <h3>{error}</h3>
-                </div>
-              )}
-
-              {!loading && !error && (
-                <>
-                  {animeData.length === 0 ? (
-                    <div className="empty-state">
-                      <Tv size={64} className="empty-icon" />
-                      <p className="empty-text">No anime found</p>
-                    </div>
-                  ) : (
-                    <div className="anime-grid">
-                      {animeData.map((anime, index) => {
-                        const imageUrl = anime.image || anime.img
-                        const animeUrl = anime.link || anime.url
-                        const duration = anime.duration
-                        const uploadDate = anime.upload
-                        const genres = anime.genre || []
-
-                        return (
-                          <div key={index} className="anime-card">
-                            <div 
-                              className="card-image-wrapper"
-                              onClick={() => loadDetail(animeUrl)}
-                            >
-                              {getBadge(anime.title)}
-                              
-                              <button
-                                className={`favorite-btn ${isFavorite(anime) ? 'active' : ''}`}
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  toggleFavorite(anime)
-                                }}
-                              >
-                                {isFavorite(anime) ? <Heart size={18} fill="currentColor" /> : <Heart size={18} />}
-                              </button>
-
-                              {duration && (
-                                <div className="card-duration"><Clock size={14} /> {duration}</div>
-                              )}
-
-                              <img
-                                src={proxyImage(imageUrl)}
-                                alt={anime.title}
-                                className="card-image"
-                                loading="lazy"
-                                onError={(e) => e.target.style.display = 'none'}
-                              />
-                            </div>
-
-                            <div 
-                              className="card-content"
-                              onClick={() => loadDetail(animeUrl)}
-                            >
-                              <div className="card-title">{anime.title}</div>
-                              
-                              {uploadDate && (
-                                <div className="card-info">
-                                  <Calendar size={14} /> {uploadDate}
-                                </div>
-                              )}
-
-                              {genres.length > 0 && (
-                                <div className="genre-pills">
-                                  {genres.slice(0, 3).map((genre, idx) => (
-                                    genre && <span key={idx} className="genre-pill"><Hash size={10} /> {genre}</span>
-                                  ))}
-                                  {genres.length > 3 && (
-                                    <span className="genre-pill">+{genres.length - 3}</span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )}
-                </>
-              )}
+        /* Main Pages */
+        <>
+          <header className="main-header">
+            <div className="logo">
+              <Film size={24} className="logo-icon" />
+              <span className="logo-text">LuminNhent4i</span>
             </div>
+          </header>
 
-            <nav className="bottom-nav">
-              <button
-                className={`nav-item ${currentPage === 'latest' ? 'active' : ''}`}
-                onClick={() => handleNavigation('latest')}
-              >
-                <Home size={20} />
-                <span>Latest</span>
-              </button>
+          {/* Render berdasarkan halaman */}
+          {currentPage === 'home' && renderHomePage()}
+          {currentPage !== 'home' && renderRegularPage()}
 
-              <button
-                className={`nav-item ${currentPage === 'release' ? 'active' : ''}`}
-                onClick={() => handleNavigation('release')}
-              >
-                <Flame size={20} />
-                <span>Release</span>
-              </button>
+          {/* Bottom Navigation - 4 Icon */}
+          <nav className="bottom-nav">
+            <button
+              className={`nav-item ${currentPage === 'home' ? 'active' : ''}`}
+              onClick={() => handleNavigation('home')}
+            >
+              <HomeIcon size={20} />
+              <span>Home</span>
+            </button>
 
-              <button
-                className={`nav-item ${currentPage === 'favorites' ? 'active' : ''}`}
-                onClick={() => handleNavigation('favorites')}
-              >
-                <Star size={20} />
-                <span>Favorites</span>
-                {favorites.length > 0 && (
-                  <span className="favorite-badge">{favorites.length}</span>
-                )}
-              </button>
-            </nav>
+            <button
+              className={`nav-item ${currentPage === 'latest' ? 'active' : ''}`}
+              onClick={() => handleNavigation('latest')}
+            >
+              <Flame size={20} />
+              <span>Latest</span>
+            </button>
 
-            <footer className="main-footer">
-              <div className="footer-container">
-                <div className="footer-top">
-                  <div className="footer-brand">
-                    <div className="footer-logo">
-                      <Film size={24} className="logo-icon" />
-                      <span className="logo-text">LuminNhent4i</span>
-                    </div>
-                    <p className="footer-tagline">Your ultimate destination for anime streaming with Indonesian subtitles</p>
+            <button
+              className={`nav-item ${currentPage === 'release' ? 'active' : ''}`}
+              onClick={() => handleNavigation('release')}
+            >
+              <CalendarDays size={20} />
+              <span>Release</span>
+            </button>
+
+            <button
+              className={`nav-item ${currentPage === 'favorites' ? 'active' : ''}`}
+              onClick={() => handleNavigation('favorites')}
+            >
+              <Star size={20} />
+              <span>Fav</span>
+              {favorites.length > 0 && (
+                <span className="favorite-badge">{favorites.length}</span>
+              )}
+            </button>
+          </nav>
+
+          {/* Footer */}
+          <footer className="main-footer">
+            <div className="footer-container">
+              <div className="footer-top">
+                <div className="footer-brand">
+                  <div className="footer-logo">
+                    <Film size={20} className="logo-icon" />
+                    <span className="logo-text">LuminNhent4i</span>
                   </div>
-
-                  <div className="footer-links">
-                    <div className="footer-column">
-                      <h4>Browse</h4>
-                      <ul>
-                        <li><a href="#latest"><Home size={14} /> Latest Anime</a></li>
-                        <li><a href="#release"><Flame size={14} /> New Releases</a></li>
-                        <li><a href="#popular"><Star size={14} /> Popular</a></li>
-                        <li><a href="#favorites"><Heart size={14} /> My Favorites</a></li>
-                      </ul>
-                    </div>
-
-                    <div className="footer-column">
-                      <h4>Genres</h4>
-                      <ul>
-                        <li><a href="#action"><Hash size={14} /> Action</a></li>
-                        <li><a href="#romance"><Hash size={14} /> Romance</a></li>
-                        <li><a href="#comedy"><Hash size={14} /> Comedy</a></li>
-                        <li><a href="#drama"><Hash size={14} /> Drama</a></li>
-                      </ul>
-                    </div>
-
-                    <div className="footer-column">
-                      <h4>Info</h4>
-                      <ul>
-                        <li><a href="#about"><Info size={14} /> About Us</a></li>
-                        <li><a href="#contact"><Mail size={14} /> Contact</a></li>
-                        <li><a href="#privacy"><Shield size={14} /> Privacy Policy</a></li>
-                        <li><a href="#terms"><FileText size={14} /> Terms of Service</a></li>
-                      </ul>
-                    </div>
-                  </div>
+                  <p className="footer-tagline">Nonton anime subtitle Indonesia</p>
                 </div>
 
-                <div className="footer-divider"></div>
-
-                <div className="footer-bottom">
-                  <div className="footer-copyright">
-                    <p>© {new Date().getFullYear()} LuminNhent4i. All Rights Reserved.</p>
-                    <p className="footer-disclaimer">
-                      <Info size={12} /> All anime content is provided by third-party sources. We do not host any files on our servers.
-                    </p>
+                <div className="footer-links">
+                  <div className="footer-column">
+                    <h4>Menu</h4>
+                    <ul>
+                      <li><a href="#" onClick={() => handleNavigation('home')}>Home</a></li>
+                      <li><a href="#" onClick={() => handleNavigation('latest')}>Latest</a></li>
+                      <li><a href="#" onClick={() => handleNavigation('release')}>Release</a></li>
+                      <li><a href="#" onClick={() => handleNavigation('favorites')}>Favorites</a></li>
+                    </ul>
                   </div>
 
-                  <div className="footer-social">
-                    <p className="footer-powered">Powered by Sanka Vollerei</p>
-                    <div className="social-links">
-                      <a href="#" aria-label="Discord"><MessageCircle size={18} /></a>
-                      <a href="#" aria-label="Twitter"><Twitter size={18} /></a>
-                      <a href="#" aria-label="Telegram"><Send size={18} /></a>
-                    </div>
+                  <div className="footer-column">
+                    <h4>Info</h4>
+                    <ul>
+                      <li><a href="#">Tentang</a></li>
+                      <li><a href="#">Kontak</a></li>
+                      <li><a href="#">Privacy</a></li>
+                      <li><a href="#">Terms</a></li>
+                    </ul>
                   </div>
                 </div>
               </div>
-            </footer>
-          </>
-        )
+
+              <div className="footer-divider"></div>
+
+              <div className="footer-bottom">
+                <div className="footer-copyright">
+                  <p>© 2024 LuminNhent4i</p>
+                </div>
+                <div className="footer-social">
+                  <a href="#"><Twitter size={16} /></a>
+                  <a href="#"><MessageCircle size={16} /></a>
+                  <a href="#"><Send size={16} /></a>
+                </div>
+              </div>
+            </div>
+          </footer>
+        </>
       )}
     </div>
   )
