@@ -53,13 +53,14 @@ function App() {
   const [favorites, setFavorites] = useState(getFavorites())
   const [bannerIndex, setBannerIndex] = useState(0)
   const [bannerData, setBannerData] = useState([])
+  const [showDetail, setShowDetail] = useState(false)
 
   // Page titles
   const pageTitles = {
-    latest: { title: '🎌 Latest Anime', subtitle: 'Discover the newest anime with Indonesian subtitles' },
-    release: { title: '🔥 Latest Releases', subtitle: 'Browse anime with genre and duration info' },
-    favorites: { title: '⭐ My Favorites', subtitle: `${favorites.length} anime saved` },
-    search: { title: '🔍 Search Results', subtitle: '' }
+    latest: { title: '🎌 Latest Anime' },
+    release: { title: '🔥 Latest Releases' },
+    favorites: { title: '⭐ My Favorites' },
+    search: { title: '🔍 Search Results' }
   }
 
   // Load initial data
@@ -147,6 +148,8 @@ function App() {
   const loadDetail = async (url) => {
     setLoading(true)
     setError(null)
+    setShowDetail(true)
+    window.scrollTo(0, 0)
     try {
       const response = await fetch(`${API_BASE}/get?url=${encodeURIComponent(url)}`)
       const data = await response.json()
@@ -157,10 +160,12 @@ function App() {
       } else {
         setError('Failed to load detail')
         setSelectedAnime(null)
+        setShowDetail(false)
       }
     } catch (err) {
       setError(`Error: ${err.message}`)
       setSelectedAnime(null)
+      setShowDetail(false)
     } finally {
       setLoading(false)
     }
@@ -210,6 +215,310 @@ function App() {
 
   return (
     <div className="app">
+      {/* Show detail page OR main content */}
+      {showDetail && selectedAnime ? (
+        /* DETAIL PAGE */
+        <div className="detail-page">
+          {/* Header with back button */}
+          <header className="detail-header-nav">
+            <button className="back-button" onClick={() => {
+              setShowDetail(false)
+              setSelectedAnime(null)
+            }}>
+              ← Back
+            </button>
+            <div className="logo-detail">
+              <span className="logo-icon">🎌</span>
+              <span className="logo-text">LuminNhent4i</span>
+            </div>
+          </header>
+
+          {loading ? (
+            <div className="loading">
+              <div className="spinner"></div>
+              <p className="loading-text">Loading...</p>
+            </div>
+          ) : (
+            <div className="detail-container">
+              <div className="detail-header">
+                <h1 className="detail-title">{selectedAnime.title}</h1>
+                <div className="detail-meta">
+                  {selectedAnime.info}<br />
+                  Duration: {selectedAnime.duration || 'N/A'} | Size: {selectedAnime.size || 'N/A'}
+                </div>
+                {selectedAnime.genre && (
+                  <div className="detail-genres">
+                    {selectedAnime.genre.split(',').map((genre, idx) => (
+                      <span key={idx} className="genre-tag">{genre.trim()}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="detail-body">
+                {/* Video Player */}
+                {selectedAnime.streams && selectedAnime.streams.length > 0 && (
+                  <div className="detail-section">
+                    <h3 className="section-title">🎬 Watch Online</h3>
+                    <div className="stream-tabs">
+                      {selectedAnime.streams.map((stream, idx) => (
+                        <button
+                          key={idx}
+                          className={`stream-tab ${idx === currentStream ? 'active' : ''}`}
+                          onClick={() => setCurrentStream(idx)}
+                        >
+                          {stream.name}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="video-player">
+                      <iframe
+                        src={selectedAnime.streams[currentStream]?.url}
+                        allowFullScreen
+                        title="Video Player"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Synopsis */}
+                <div className="detail-section">
+                  <h3 className="section-title">📖 Synopsis</h3>
+                  <p className="synopsis-text">{selectedAnime.sinopsis || 'No synopsis available'}</p>
+                </div>
+
+                {/* Download Links */}
+                {selectedAnime.download && selectedAnime.download.length > 0 && (
+                  <div className="detail-section">
+                    <h3 className="section-title">⬇️ Download</h3>
+                    {selectedAnime.download.map((quality, idx) => (
+                      <div key={idx} className="download-quality">
+                        <h4 className="quality-title">
+                          <span className="quality-badge">{quality.type.toUpperCase()}</span>
+                          {quality.title}
+                        </h4>
+                        <div className="download-links">
+                          {quality.links.map((link, linkIdx) => (
+                            <a
+                              key={linkIdx}
+                              href={link.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="download-link"
+                            >
+                              ⬇️ {link.name}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* MAIN CONTENT */
+        <>
+          {/* Header Logo */}
+          <header className="main-header">
+            <div className="logo">
+              <span className="logo-icon">🎌</span>
+              <span className="logo-text">LuminNhent4i</span>
+            </div>
+          </header>
+
+          {/* Banner Carousel */}
+          {(currentPage === 'latest' || currentPage === 'release') && bannerData.length > 0 && (
+            <div className="banner-container">
+              <div className="banner-slider" style={{ transform: `translateX(-${bannerIndex * 100}%)` }}>
+                {bannerData.map((anime, index) => (
+                  <div 
+                    key={index} 
+                    className="banner-slide"
+                    onClick={() => loadDetail(anime.link || anime.url)}
+                  >
+                    <img 
+                      src={proxyImage(anime.image || anime.img)} 
+                      alt={anime.title}
+                      className="banner-image"
+                      onError={(e) => e.target.style.display = 'none'}
+                    />
+                    <div className="banner-content">
+                      <h2 className="banner-title">{anime.title}</h2>
+                      <p className="banner-info">
+                        {anime.upload || anime.duration || 'Click to watch'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="banner-dots">
+                {bannerData.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`banner-dot ${index === bannerIndex ? 'active' : ''}`}
+                    onClick={() => setBannerIndex(index)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Main Container */}
+          <div className="container">
+            {/* Page Header */}
+            <div className="page-header">
+              <h1 className="page-title">{currentPageInfo.title}</h1>
+            </div>
+
+            {/* Search Bar */}
+            <div className="search-section">
+              <div className="search-bar">
+                <input
+                  type="text"
+                  className="search-input"
+                  placeholder="Search anime..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={handleSearchKeyPress}
+                />
+                <button className="search-btn" onClick={performSearch}>
+                  Search
+                </button>
+              </div>
+            </div>
+
+            {/* Loading */}
+            {loading && (
+              <div className="loading">
+                <div className="spinner"></div>
+                <p className="loading-text">Loading...</p>
+              </div>
+            )}
+
+            {/* Error */}
+            {error && !loading && (
+              <div className="error">
+                <h3>⚠️ {error}</h3>
+              </div>
+            )}
+
+            {/* Content Grid */}
+            {!loading && !error && (
+              <>
+                {animeData.length === 0 ? (
+                  <div className="empty-state">
+                    <div className="empty-icon">📺</div>
+                    <p className="empty-text">No anime found</p>
+                  </div>
+                ) : (
+                  <div className="anime-grid">
+                    {animeData.map((anime, index) => {
+                      const imageUrl = anime.image || anime.img
+                      const animeUrl = anime.link || anime.url
+                      const duration = anime.duration
+                      const uploadDate = anime.upload
+                      const genres = anime.genre || []
+
+                      return (
+                        <div key={index} className="anime-card">
+                          <div 
+                            className="card-image-wrapper"
+                            onClick={() => loadDetail(animeUrl)}
+                          >
+                            {getBadge(anime.title)}
+                            
+                            <button
+                              className={`favorite-btn ${isFavorite(anime) ? 'active' : ''}`}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                toggleFavorite(anime)
+                              }}
+                            >
+                              {isFavorite(anime) ? '❤️' : '🤍'}
+                            </button>
+
+                            {duration && (
+                              <div className="card-duration">⏱ {duration}</div>
+                            )}
+
+                            <img
+                              src={proxyImage(imageUrl)}
+                              alt={anime.title}
+                              className="card-image"
+                              loading="lazy"
+                              onError={(e) => e.target.style.display = 'none'}
+                            />
+                          </div>
+
+                          <div 
+                            className="card-content"
+                            onClick={() => loadDetail(animeUrl)}
+                          >
+                            <div className="card-title">{anime.title}</div>
+                            
+                            {uploadDate && (
+                              <div className="card-info">
+                                📅 {uploadDate}
+                              </div>
+                            )}
+
+                            {genres.length > 0 && (
+                              <div className="genre-pills">
+                                {genres.slice(0, 3).map((genre, idx) => (
+                                  genre && <span key={idx} className="genre-pill">{genre}</span>
+                                ))}
+                                {genres.length > 3 && (
+                                  <span className="genre-pill">+{genres.length - 3}</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Bottom Navigation */}
+          <nav className="bottom-nav">
+            <button
+              className={`nav-item ${currentPage === 'latest' ? 'active' : ''}`}
+              onClick={() => handleNavigation('latest')}
+            >
+              <span className="nav-icon">🏠</span>
+              Latest
+            </button>
+
+            <button
+              className={`nav-item ${currentPage === 'release' ? 'active' : ''}`}
+              onClick={() => handleNavigation('release')}
+            >
+              <span className="nav-icon">🔥</span>
+              Release
+            </button>
+
+            <button
+              className={`nav-item ${currentPage === 'favorites' ? 'active' : ''}`}
+              onClick={() => handleNavigation('favorites')}
+            >
+              <span className="nav-icon">⭐</span>
+              Favorites
+              {favorites.length > 0 && (
+                <span className="favorite-badge">{favorites.length}</span>
+              )}
+            </button>
+          </nav>
+        </>
+      )}
+    </div>
+  )
       {/* Banner Carousel - Only show on home pages */}
       {(currentPage === 'latest' || currentPage === 'release') && bannerData.length > 0 && (
         <div className="banner-container">
