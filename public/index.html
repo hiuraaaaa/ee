@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nekopoi - Latest Anime Updates</title>
+    <title>Nekopoi - Latest Releases</title>
     <style>
         * {
             margin: 0;
@@ -79,23 +79,9 @@
             border-bottom: 2px solid rgba(255, 255, 255, 0.2);
         }
 
-        .status-content {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .status-badge {
-            background: rgba(76, 175, 80, 0.3);
-            padding: 5px 15px;
-            border-radius: 20px;
-            border: 2px solid #4caf50;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            font-weight: 600;
+        .creator-tag {
+            font-weight: 700;
+            font-size: 1.1em;
         }
 
         /* Container */
@@ -124,15 +110,15 @@
         }
 
         /* Grid */
-        .anime-grid {
+        .release-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
             margin-bottom: 40px;
         }
 
         /* Card */
-        .anime-card {
+        .release-card {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
             overflow: hidden;
@@ -144,14 +130,14 @@
             position: relative;
         }
 
-        .anime-card:hover {
+        .release-card:hover {
             transform: translateY(-10px) scale(1.02);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
         }
 
         .card-image-wrapper {
             width: 100%;
-            height: 200px;
+            height: 220px;
             position: relative;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
@@ -170,7 +156,7 @@
             left: 0;
         }
 
-        .anime-card:hover .card-image {
+        .release-card:hover .card-image {
             transform: scale(1.15);
         }
 
@@ -180,23 +166,37 @@
             z-index: 1;
         }
 
-        /* Badges */
-        .badge-container {
+        /* Duration Badge */
+        .duration-badge {
             position: absolute;
-            top: 10px;
-            left: 10px;
+            bottom: 10px;
             right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 700;
             display: flex;
+            align-items: center;
             gap: 5px;
-            flex-wrap: wrap;
             z-index: 2;
         }
 
-        .badge {
-            padding: 4px 10px;
+        .duration-badge::before {
+            content: "⏱";
+        }
+
+        /* Type Badge */
+        .type-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 5px 12px;
             border-radius: 12px;
             font-size: 0.75em;
             font-weight: 700;
+            z-index: 2;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
 
@@ -210,16 +210,6 @@
             color: #fff;
         }
 
-        .badge-3d {
-            background: linear-gradient(135deg, #4facfe, #00f2fe);
-            color: #fff;
-        }
-
-        .badge-l2d {
-            background: linear-gradient(135deg, #43e97b, #38f9d7);
-            color: #fff;
-        }
-
         /* Card Content */
         .card-content {
             padding: 20px;
@@ -228,7 +218,7 @@
         .card-title {
             font-size: 1em;
             font-weight: 700;
-            margin-bottom: 12px;
+            margin-bottom: 15px;
             color: #333;
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -238,18 +228,29 @@
             line-height: 1.4;
         }
 
-        .card-date {
-            color: #666;
-            font-size: 0.85em;
+        /* Genre Pills */
+        .genre-container {
             display: flex;
-            align-items: center;
-            gap: 5px;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 12px;
         }
 
-        .card-date::before {
-            content: "📅";
-            font-size: 1.1em;
+        .genre-pill {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 600;
+            white-space: nowrap;
         }
+
+        /* Special genre colors */
+        .genre-uncensored { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .genre-romance { background: linear-gradient(135deg, #fa709a, #fee140); }
+        .genre-milf { background: linear-gradient(135deg, #30cfd0, #330867); }
+        .genre-harem { background: linear-gradient(135deg, #a8edea, #fed6e3); color: #333; }
 
         /* Loading & Error */
         .loading {
@@ -318,11 +319,6 @@
             opacity: 0.9;
         }
 
-        .creator-tag {
-            font-weight: 700;
-            font-size: 1.2em;
-        }
-
         /* Responsive */
         @media (max-width: 768px) {
             .nav-links {
@@ -337,19 +333,19 @@
                 font-size: 1.8em;
             }
 
-            .anime-grid {
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                gap: 15px;
+            .release-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 20px;
             }
         }
 
         @media (max-width: 480px) {
-            .anime-grid {
-                grid-template-columns: repeat(2, 1fr);
+            .release-grid {
+                grid-template-columns: 1fr;
             }
 
             .card-image-wrapper {
-                height: 150px;
+                height: 180px;
             }
         }
     </style>
@@ -359,7 +355,7 @@
     <nav class="navbar">
         <div class="nav-content">
             <div class="logo">
-                🎌 NEKOPOI
+                🎌 NEKOPOI RELEASES
             </div>
             <div class="nav-links">
                 <a href="#latest">Latest</a>
@@ -372,18 +368,13 @@
 
     <!-- Status Banner -->
     <div class="status-banner">
-        <div class="status-content">
-            <span>Created by <strong id="creatorName">Sanka Vollerei</strong></span>
-            <span class="status-badge">
-                ✅ <span id="statusText">Success</span>
-            </span>
-        </div>
+        <span>Created by <span class="creator-tag" id="creatorName">Sanka Vollerei</span></span>
     </div>
 
     <!-- Loading State -->
     <div id="loading" class="loading">
         <div class="spinner"></div>
-        <p class="loading-text">Loading latest anime...</p>
+        <p class="loading-text">Loading latest releases...</p>
     </div>
 
     <!-- Error State -->
@@ -396,17 +387,17 @@
     <div class="container" id="mainContent" style="display: none;">
         <!-- Section Header -->
         <div class="section-header">
-            <h1 class="section-title">🎌 Latest Anime Updates</h1>
-            <p class="section-subtitle">Discover the newest anime episodes with Indonesian subtitles</p>
+            <h1 class="section-title">🎌 Latest Releases</h1>
+            <p class="section-subtitle">Browse the newest anime releases with detailed information</p>
         </div>
 
-        <!-- Anime Grid -->
-        <div id="animeGrid" class="anime-grid"></div>
+        <!-- Release Grid -->
+        <div id="releaseGrid" class="release-grid"></div>
 
         <!-- Empty State -->
         <div id="emptyState" class="empty-state" style="display: none;">
             <div class="empty-icon">📺</div>
-            <p class="empty-text">No anime found</p>
+            <p class="empty-text">No releases found</p>
         </div>
     </div>
 
@@ -421,114 +412,191 @@
     </footer>
 
     <script>
-        // ===== SOLUSI CORS =====
-        // Uncomment untuk pakai proxy:
-        // const proxyImage = `/api/proxy?url=${encodeURIComponent(item.image)}`;
-        // =====================
-
         // API Data
         const apiData = {
-            "status": "success",
             "creator": "Sanka Vollerei",
-            "success": true,
-            "results": [
+            "data": [
                 {
+                    "img": "https://nekopoi.care/wp-content/uploads/2026/02/vlcsnap-2026-02-15-01h32m35s786-300x169.jpg",
                     "title": "Android wa Keiken Ninzuu ni Hairimasu ka?? Episode 6 Subtitle Indonesia",
-                    "upload": "Sunday, February 15th, 2026",
-                    "image": "https://nekopoi.care/wp-content/uploads/2026/02/vlcsnap-2026-02-15-01h32m35s786-300x169.jpg",
-                    "link": "https://nekopoi.care/android-wa-keiken-ninzuu-ni-hairimasu-ka-episode-6-subtitle-indonesia/"
+                    "url": "https://nekopoi.care/android-wa-keiken-ninzuu-ni-hairimasu-ka-episode-6-subtitle-indonesia/",
+                    "genre": [
+                        "Big Oppai",
+                        "Romance",
+                        "Yuri"
+                    ],
+                    "duration": "5 menit"
                 },
                 {
+                    "img": "https://nekopoi.care/wp-content/uploads/2026/02/vlcsnap-2026-02-13-14h28m28s195-300x169.jpg",
                     "title": "Sono Bisque Doll wa Koi wo Suru Season 3 Episode 1 Subtitle Indonesia",
-                    "upload": "Sunday, February 15th, 2026",
-                    "image": "https://nekopoi.care/wp-content/uploads/2026/02/vlcsnap-2026-02-13-14h28m28s195-300x169.jpg",
-                    "link": "https://nekopoi.care/sono-bisque-doll-wa-koi-wo-suru-season-3-episode-1-subtitle-indonesia/"
+                    "url": "https://nekopoi.care/sono-bisque-doll-wa-koi-wo-suru-season-3-episode-1-subtitle-indonesia/",
+                    "genre": [
+                        "Ahegao",
+                        "Creampie",
+                        "Romance",
+                        "Uncensored"
+                    ],
+                    "duration": "7 menit"
                 },
                 {
-                    "title": "[UNCENSORED] MD0216 – Pacarku Sungguh Cantik Putih Mulus dan Penurut",
-                    "upload": "Saturday, February 14th, 2026",
-                    "image": "https://nekopoi.care/wp-content/uploads/2026/02/MD0216-300x169.jpg",
-                    "link": "https://nekopoi.care/uncensored-md0216-pacarku-sungguh-cantik-putih-mulus-dan-penurut/"
-                },
-                {
-                    "title": "[UNCENSORED] Ketemu Dijalan Langsung Dibungkus, Cewe Cantik Ini Malah Jadi Hyper Banget – FC2-PPV-4563890",
-                    "upload": "Saturday, February 14th, 2026",
-                    "image": "https://nekopoi.care/wp-content/uploads/2026/02/vlcsnap-2026-02-12-12h53m31s693-300x169.jpg",
-                    "link": "https://nekopoi.care/uncensored-ketemu-dijalan-langsung-dibungkus-cewe-cantik-ini-malah-jadi-hyper-banget-fc2-ppv-4563890/"
-                },
-                {
-                    "title": "[L2D] Tatapan Sange Nami Dan Robin Tak Tertahan & Bonus Scene – One Piece",
-                    "upload": "Saturday, February 14th, 2026",
-                    "image": "https://nekopoi.care/wp-content/uploads/2026/02/vlcsnap-2026-02-11-21h06m54s739-300x169.jpg",
-                    "link": "https://nekopoi.care/l2d-tatapan-sange-nami-dan-robin-tak-tertahan-bonus-scene-one-piece/"
-                },
-                {
-                    "title": "[L2D] Phoebe Yang Kenikmatan Saat Dientot – Wuthering Waves",
-                    "upload": "Saturday, February 14th, 2026",
-                    "image": "https://nekopoi.care/wp-content/uploads/2026/02/リル-Phoebe-WuWa-2-300x225.jpg",
-                    "link": "https://nekopoi.care/l2d-phoebe-yang-kenikmatan-saat-dientot-wuthering-waves/"
-                },
-                {
-                    "title": "[3D] Stelle Yang Manis Menggodaku Di Kantor – HSR",
-                    "upload": "Saturday, February 14th, 2026",
-                    "image": "https://nekopoi.care/wp-content/uploads/2026/02/Untitled-300x225.jpg",
-                    "link": "https://nekopoi.care/3d-stelle-yang-manis-menggodaku-di-kantor-hsr/"
-                },
-                {
-                    "title": "[3D] Jangan Bilang Suami Tante Kalo Kita Main Bareng Yah",
-                    "upload": "Saturday, February 14th, 2026",
-                    "image": "https://nekopoi.care/wp-content/uploads/2026/02/vlcsnap-2026-02-10-15h53m30s767-300x169.jpg",
-                    "link": "https://nekopoi.care/3d-jangan-bilang-suami-tante-kalo-kita-main-bareng-yah/"
-                },
-                {
+                    "img": "https://nekopoi.care/wp-content/uploads/2026/02/vlcsnap-2026-02-03-23h23m20s034-300x169.jpg",
                     "title": "[NEW Release] Imaizumin Chi wa Douyara Gal no Tamariba ni Natteru Rashii Episode 6 Subtitle Indonesia",
-                    "upload": "Friday, February 13th, 2026",
-                    "image": "https://nekopoi.care/wp-content/uploads/2026/02/vlcsnap-2026-02-03-23h23m20s034-300x169.jpg",
-                    "link": "https://nekopoi.care/imaizumin-chi-wa-douyara-gal-no-tamariba-ni-natteru-rashii-episode-6-subtitle-indonesia/"
+                    "url": "https://nekopoi.care/imaizumin-chi-wa-douyara-gal-no-tamariba-ni-natteru-rashii-episode-6-subtitle-indonesia/",
+                    "genre": [
+                        "Big Oppai",
+                        "Blowjob",
+                        "Creampie",
+                        "Femdom",
+                        "Harem",
+                        "Paizuri",
+                        "Schoolgirl"
+                    ],
+                    "duration": "16 menit"
                 },
                 {
+                    "img": "https://nekopoi.care/wp-content/uploads/2026/02/vlcsnap-2026-02-03-18h40m52s181-300x169.jpg",
                     "title": "[NEW Release] Imaizumin Chi wa Douyara Gal no Tamariba ni Natteru Rashii Episode 5 Subtitle Indonesia",
-                    "upload": "Friday, February 13th, 2026",
-                    "image": "https://nekopoi.care/wp-content/uploads/2026/02/vlcsnap-2026-02-03-18h40m52s181-300x169.jpg",
-                    "link": "https://nekopoi.care/imaizumin-chi-wa-douyara-gal-no-tamariba-ni-natteru-rashii-episode-5-subtitle-indonesia/"
+                    "url": "https://nekopoi.care/imaizumin-chi-wa-douyara-gal-no-tamariba-ni-natteru-rashii-episode-5-subtitle-indonesia/",
+                    "genre": [
+                        "Big Oppai",
+                        "Blowjob",
+                        "Creampie",
+                        "Femdom",
+                        "Harem",
+                        "Paizuri",
+                        "Schoolgirl"
+                    ],
+                    "duration": "16 menit"
+                },
+                {
+                    "img": "https://nekopoi.care/wp-content/uploads/2026/02/vlcsnap-2026-02-04-14h48m23s933-300x169.jpg",
+                    "title": "[NEW Release] Nagachichi Nagai-san The Animation Episode 3 Subtitle Indonesia",
+                    "url": "https://nekopoi.care/nagachichi-nagai-san-the-animation-episode-3-subtitle-indonesia/",
+                    "genre": [
+                        "Ahegao",
+                        "Big Oppai",
+                        "Blowjob",
+                        "Creampie",
+                        "Oral"
+                    ],
+                    "duration": "16 menit"
+                },
+                {
+                    "img": "https://nekopoi.care/wp-content/uploads/2026/02/vlcsnap-2026-02-04-17h20m52s299-300x169.jpg",
+                    "title": "[NEW Release] Seifuku wa Kita mama de Episode 1 Subtitle Indonesia",
+                    "url": "https://nekopoi.care/seifuku-wa-kita-mama-de-episode-1-subtitle-indonesia/",
+                    "genre": [
+                        "Big Oppai",
+                        "Blowjob",
+                        "Creampie",
+                        "Masturbation",
+                        "Romance",
+                        "Schoolgirl"
+                    ],
+                    "duration": "19 menit"
+                },
+                {
+                    "img": "https://nekopoi.care/wp-content/uploads/2026/02/vlcsnap-2026-02-04-22h22m45s949-300x169.jpg",
+                    "title": "[NEW Release] Seikon No Aria Episode 2 Subtitle Indonesia",
+                    "url": "https://nekopoi.care/seikon-no-aria-episode-2-subtitle-indonesia/",
+                    "genre": [
+                        "Big Oppai",
+                        "Blowjob",
+                        "Creampie",
+                        "Masturbation",
+                        "Monster",
+                        "Paizuri"
+                    ],
+                    "duration": "15 menit"
+                },
+                {
+                    "img": "https://nekopoi.care/wp-content/uploads/2026/02/vlcsnap-2026-02-05-16h12m30s759-300x169.jpg",
+                    "title": "[NEW Release] Korette Nani? Episode 2 Subtitle Indonesia",
+                    "url": "https://nekopoi.care/korette-nani-episode-2-subtitle-indonesia/",
+                    "genre": [
+                        "Big Oppai",
+                        "Blowjob",
+                        "Creampie",
+                        "MILF",
+                        "Netorare",
+                        "Paizuri"
+                    ],
+                    "duration": "23 menit"
+                },
+                {
+                    "img": "https://nekopoi.care/wp-content/uploads/2026/02/vlcsnap-2026-02-05-14h34m44s077-300x169.jpg",
+                    "title": "[NEW Release] Seikou Senki Pony Celes Episode 1 Subtitle Indonesia",
+                    "url": "https://nekopoi.care/seikou-senki-pony-celes-episode-1-subtitle-indonesia/",
+                    "genre": [
+                        "Big Oppai",
+                        "Blowjob",
+                        "Creampie",
+                        "Masturbation",
+                        "Monster",
+                        "Paizuri"
+                    ],
+                    "duration": "15 menit"
+                },
+                {
+                    "img": "https://nekopoi.care/wp-content/uploads/2026/02/vlcsnap-2026-02-09-19h12m01s991-300x169.jpg",
+                    "title": "[UNCENSORED] Arisugawa Ren tte Honto wa Onna Nanda yo ne Episode 5 Subtitle Indonesia",
+                    "url": "https://nekopoi.care/uncensored-arisugawa-ren-tte-honto-wa-onna-nanda-yo-ne-episode-5-subtitle-indonesia/",
+                    "genre": [
+                        "Blowjob",
+                        "Incest",
+                        "Romance",
+                        "Uncensored"
+                    ],
+                    "duration": "6 menit"
                 }
             ]
         };
 
-        // Detect badge type
-        function getBadges(title) {
-            const badges = [];
-            
-            if (title.includes('[NEW Release]')) {
-                badges.push({ type: 'new', text: 'NEW' });
-            }
-            if (title.includes('[UNCENSORED]')) {
-                badges.push({ type: 'uncensored', text: 'UNCENSORED' });
-            }
-            if (title.includes('[3D]')) {
-                badges.push({ type: '3d', text: '3D' });
-            }
-            if (title.includes('[L2D]')) {
-                badges.push({ type: 'l2d', text: 'L2D' });
-            }
-            
-            return badges;
+        // Get genre class for special colors
+        function getGenreClass(genre) {
+            const genreLower = genre.toLowerCase();
+            if (genreLower.includes('uncensored')) return 'genre-uncensored';
+            if (genreLower.includes('romance')) return 'genre-romance';
+            if (genreLower.includes('milf')) return 'genre-milf';
+            if (genreLower.includes('harem')) return 'genre-harem';
+            return '';
         }
 
-        // Create Anime Card
-        function createAnimeCard(item) {
-            const badges = getBadges(item.title);
-            // Use Vercel proxy to bypass CORS
-            const proxyImage = `/api/proxy?url=${encodeURIComponent(item.image)}`;
+        // Detect badge type from title
+        function getTypeBadge(title) {
+            if (title.includes('[NEW Release]')) {
+                return '<span class="type-badge badge-new">NEW</span>';
+            }
+            if (title.includes('[UNCENSORED]')) {
+                return '<span class="type-badge badge-uncensored">UNCENSORED</span>';
+            }
+            return '';
+        }
 
-            const badgesHTML = badges.map(badge => 
-                `<span class="badge badge-${badge.type}">${badge.text}</span>`
+        // Create Release Card
+        function createReleaseCard(item) {
+            // Use Vercel proxy
+            const proxyImage = `/api/proxy?url=${encodeURIComponent(item.img)}`;
+            // const proxyImage = item.img; // Uncomment untuk local testing
+
+            const typeBadge = getTypeBadge(item.title);
+
+            // Create genre pills (max 5 to avoid overflow)
+            const genresHTML = item.genre.slice(0, 5).map(genre => 
+                `<span class="genre-pill ${getGenreClass(genre)}">${genre}</span>`
             ).join('');
 
+            // Add "+N more" if there are more genres
+            const moreGenres = item.genre.length > 5 
+                ? `<span class="genre-pill">+${item.genre.length - 5} more</span>` 
+                : '';
+
             return `
-                <a href="${item.link}" target="_blank" class="anime-card">
+                <a href="${item.url}" target="_blank" class="release-card">
                     <div class="card-image-wrapper">
-                        ${badgesHTML ? `<div class="badge-container">${badgesHTML}</div>` : ''}
+                        ${typeBadge}
+                        <div class="duration-badge">${item.duration}</div>
                         <div class="image-placeholder">🎌</div>
                         <img src="${proxyImage}" 
                              alt="${item.title}" 
@@ -538,7 +606,10 @@
                     </div>
                     <div class="card-content">
                         <div class="card-title">${item.title}</div>
-                        <div class="card-date">${item.upload}</div>
+                        <div class="genre-container">
+                            ${genresHTML}
+                            ${moreGenres}
+                        </div>
                     </div>
                 </a>
             `;
@@ -549,7 +620,7 @@
             const loadingEl = document.getElementById('loading');
             const errorEl = document.getElementById('error');
             const mainContent = document.getElementById('mainContent');
-            const animeGrid = document.getElementById('animeGrid');
+            const releaseGrid = document.getElementById('releaseGrid');
             const emptyState = document.getElementById('emptyState');
 
             try {
@@ -559,16 +630,11 @@
                     document.getElementById('footerCreator').textContent = data.creator;
                 }
 
-                // Update status
-                if (data.status === 'success' && data.success) {
-                    document.getElementById('statusText').textContent = 'Success';
-                }
-
-                // Check results
-                if (data.results && data.results.length > 0) {
-                    // Render anime cards
-                    const cardsHTML = data.results.map(item => createAnimeCard(item)).join('');
-                    animeGrid.innerHTML = cardsHTML;
+                // Check data
+                if (data.data && data.data.length > 0) {
+                    // Render release cards
+                    const cardsHTML = data.data.map(item => createReleaseCard(item)).join('');
+                    releaseGrid.innerHTML = cardsHTML;
 
                     // Show content
                     loadingEl.style.display = 'none';
@@ -577,7 +643,7 @@
                     // Show empty state
                     loadingEl.style.display = 'none';
                     mainContent.style.display = 'block';
-                    animeGrid.style.display = 'none';
+                    releaseGrid.style.display = 'none';
                     emptyState.style.display = 'block';
                 }
 
@@ -599,7 +665,7 @@
         /*
         async function fetchData() {
             try {
-                const response = await fetch('https://www.sankavollerei.com/anime/neko/latest');
+                const response = await fetch('https://www.sankavollerei.com/anime/neko/release/1');
                 const data = await response.json();
                 renderData(data);
             } catch (error) {
