@@ -645,7 +645,7 @@ body {
   height: 14px;
 }
 
-/* ===== ANIME GRID ===== */
+/* ===== ANIME GRID (untuk Latest) ===== */
 .anime-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -653,7 +653,7 @@ body {
   margin-bottom: 20px;
 }
 
-/* ===== ANIME CARD ===== */
+/* ===== ANIME CARD (untuk Latest) ===== */
 .anime-card {
   background: var(--bg-card);
   border-radius: 10px;
@@ -856,7 +856,7 @@ body {
   height: 8px;
 }
 
-/* ===== RELEASE MULTI-ROW SCROLL ===== */
+/* ===== RELEASE MULTI-ROW SCROLL (3 BARIS) ===== */
 .release-multi-row {
   margin-bottom: 32px;
 }
@@ -914,7 +914,7 @@ body {
   border-radius: 4px;
 }
 
-/* Card untuk release row */
+/* Card untuk release row (horizontal scroll card) */
 .release-row-card {
   min-width: 130px;
   max-width: 130px;
@@ -1130,7 +1130,7 @@ body {
   border: 1px dashed var(--border);
 }
 
-/* ===== BOTTOM NAVIGATION ===== */
+/* ===== BOTTOM NAVIGATION (4 ICON) ===== */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -1542,6 +1542,11 @@ body.modal-open {
   .release-row-card {
     min-width: 120px;
     max-width: 120px;
+  }
+  
+  /* 3 baris tetap jalan di mobile */
+  .release-row {
+    margin-bottom: 16px;
   }
 }
 
