@@ -222,14 +222,18 @@ body {
 }
 
 .banner-title {
-  font-size: 2.5em;
-  font-weight: 900;
-  margin-bottom: 10px;
+  font-size: 1.4em;
+  font-weight: 700;
+  margin-bottom: 8px;
   text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .banner-info {
-  font-size: 1.1em;
+  font-size: 0.95em;
   opacity: 0.95;
 }
 
@@ -730,6 +734,29 @@ body {
 }
 
 /* ===== RESPONSIVE ===== */
+
+/* 🛡️ AD BLOCKER CSS */
+/* Block known ad overlays and popups */
+iframe[src*="adsterra"],
+iframe[src*="popads"],
+iframe[src*="exoclick"],
+iframe[src*="clickadu"],
+div[class*="ad-overlay"],
+div[id*="ad-popup"],
+div[class*="captcha-overlay"],
+[id*="robot-check"],
+[class*="verification-overlay"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Prevent body scroll lock from ads */
+body.modal-open {
+  overflow: auto !important;
+}
+
 @media (max-width: 768px) {
   .logo-text, .logo-detail .logo-text {
     font-size: 0.85em;
@@ -758,7 +785,11 @@ body {
   }
 
   .banner-title {
-    font-size: 1.8em;
+    font-size: 1.1em;
+  }
+
+  .banner-info {
+    font-size: 0.85em;
   }
 
   .page-title {
