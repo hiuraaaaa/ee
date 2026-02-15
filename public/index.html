@@ -520,12 +520,12 @@
     <script>
         // API Base
         const API_BASE = 'https://www.sankavollerei.com/anime/neko';
-        const CORS_PROXY = 'https://corsproxy.io/?';
         
-        // Helper untuk proxy image
+        // Helper untuk proxy image (pakai Vercel proxy)
         function proxyImage(url) {
-            return CORS_PROXY + encodeURIComponent(url);
+            return `/api/proxy?url=${encodeURIComponent(url)}`;
         }
+        
         // State
         let currentPage = 'latest';
         let currentData = [];
