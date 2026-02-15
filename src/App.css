@@ -1,4 +1,4 @@
-/* src/App.css - FULL VERSION with mobile-friendly sizes and release special layout */
+/* src/App.css - FULL VERSION with release multi-row scroll */
 
 * {
   margin: 0;
@@ -856,51 +856,68 @@ body {
   height: 8px;
 }
 
-/* ===== RELEASE SPECIAL LAYOUT ===== */
-.release-special {
+/* ===== RELEASE MULTI-ROW SCROLL ===== */
+.release-multi-row {
   margin-bottom: 32px;
 }
 
-.release-special-layout {
+.release-row {
+  margin-bottom: 20px;
+}
+
+.release-row:last-child {
+  margin-bottom: 0;
+}
+
+.release-row-header {
   display: flex;
-  gap: 16px;
-  margin-top: 16px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
 }
 
-.release-featured {
-  flex: 0 0 40%;
-  max-width: 40%;
+.release-row-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.release-featured .anime-card {
-  height: 100%;
+.release-row-title svg {
+  width: 14px;
+  height: 14px;
+  color: var(--primary);
 }
 
-.release-horizontal-scroll {
-  flex: 1;
+.release-row-scroll {
   display: flex;
   overflow-x: auto;
   gap: 12px;
   padding-bottom: 8px;
   scrollbar-width: thin;
   -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
 
-.release-horizontal-scroll::-webkit-scrollbar {
+.release-row-scroll::-webkit-scrollbar {
   height: 4px;
 }
 
-.release-horizontal-scroll::-webkit-scrollbar-track {
+.release-row-scroll::-webkit-scrollbar-track {
   background: var(--bg-light);
 }
 
-.release-horizontal-scroll::-webkit-scrollbar-thumb {
+.release-row-scroll::-webkit-scrollbar-thumb {
   background: linear-gradient(90deg, var(--primary), var(--secondary));
   border-radius: 4px;
 }
 
-.horizontal-card {
-  min-width: 160px;
+/* Card untuk release row */
+.release-row-card {
+  min-width: 130px;
+  max-width: 130px;
   background: white;
   border-radius: 10px;
   border: 1px solid var(--border);
@@ -908,33 +925,55 @@ body {
   box-shadow: 0 2px 6px var(--shadow);
   transition: all 0.2s ease;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
-.horizontal-card:hover {
+.release-row-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 12px rgba(139, 92, 246, 0.15);
   border-color: var(--primary);
 }
 
-.horizontal-card-image {
+.release-row-image {
   position: relative;
   width: 100%;
-  height: 100px;
+  aspect-ratio: 3/4;
   overflow: hidden;
 }
 
-.horizontal-card-image img {
+.release-row-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: transform 0.3s ease;
 }
 
-.horizontal-card:hover .horizontal-card-image img {
+.release-row-card:hover .release-row-image img {
   transform: scale(1.05);
 }
 
-.favorite-btn-small {
+.release-row-badge {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 8px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #EF4444, #F97316);
+  color: white;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.release-row-badge svg {
+  width: 8px;
+  height: 8px;
+}
+
+.release-row-favorite {
   position: absolute;
   top: 4px;
   right: 4px;
@@ -953,64 +992,64 @@ body {
   z-index: 2;
 }
 
-.favorite-btn-small:hover {
-  transform: scale(1.1);
-  background: white;
-}
-
-.favorite-btn-small.active {
-  color: #EF4444;
-}
-
-.favorite-btn-small svg {
+.release-row-favorite svg {
   width: 12px;
   height: 12px;
 }
 
-.horizontal-card-content {
-  padding: 8px;
+.release-row-favorite:hover {
+  transform: scale(1.1);
+  background: white;
 }
 
-.horizontal-card-title {
-  font-size: 11px;
+.release-row-favorite.active {
+  color: #EF4444;
+}
+
+.release-row-content {
+  padding: 6px;
+}
+
+.release-row-title-text {
+  font-size: 10px;
   font-weight: 600;
   margin-bottom: 4px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  height: 30px;
+  height: 26px;
   line-height: 1.3;
   color: var(--text-dark);
 }
 
-.horizontal-card-genres {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 4px;
-  flex-wrap: wrap;
-}
-
-.genre-tag-mini {
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 8px;
-  font-weight: 500;
-}
-
-.horizontal-card-meta {
+.release-row-meta {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 9px;
+  font-size: 8px;
   color: var(--text-light);
+  margin-bottom: 4px;
 }
 
-.horizontal-card-meta svg {
+.release-row-meta svg {
   width: 8px;
   height: 8px;
+}
+
+.release-row-genres {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.release-row-genre {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: white;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 7px;
+  font-weight: 500;
 }
 
 /* ===== LOADING (SPINNER) ===== */
@@ -1414,12 +1453,9 @@ body.modal-open {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   }
   
-  .horizontal-card {
-    min-width: 180px;
-  }
-  
-  .horizontal-card-image {
-    height: 120px;
+  .release-row-card {
+    min-width: 150px;
+    max-width: 150px;
   }
 }
 
@@ -1469,17 +1505,9 @@ body.modal-open {
     justify-content: flex-start;
   }
   
-  .release-featured {
-    flex: 0 0 35%;
-    max-width: 35%;
-  }
-  
-  .horizontal-card {
-    min-width: 200px;
-  }
-  
-  .horizontal-card-image {
-    height: 130px;
+  .release-row-card {
+    min-width: 170px;
+    max-width: 170px;
   }
 }
 
@@ -1494,39 +1522,14 @@ body.modal-open {
     height: 400px;
   }
   
-  .release-featured {
-    flex: 0 0 30%;
-    max-width: 30%;
-  }
-  
-  .horizontal-card {
-    min-width: 220px;
-  }
-  
-  .horizontal-card-image {
-    height: 140px;
+  .release-row-card {
+    min-width: 180px;
+    max-width: 180px;
   }
 }
 
 /* ===== MOBILE (≤479px) ===== */
 @media (max-width: 479px) {
-  .release-special-layout {
-    flex-direction: column;
-  }
-  
-  .release-featured {
-    flex: auto;
-    max-width: 100%;
-  }
-  
-  .horizontal-card {
-    min-width: 140px;
-  }
-  
-  .horizontal-card-image {
-    height: 90px;
-  }
-  
   .bottom-nav .nav-item span {
     font-size: 9px;
   }
@@ -1534,6 +1537,11 @@ body.modal-open {
   .bottom-nav .nav-item svg {
     width: 18px;
     height: 18px;
+  }
+  
+  .release-row-card {
+    min-width: 120px;
+    max-width: 120px;
   }
 }
 
