@@ -5,11 +5,9 @@ import {
   Flame, 
   Star, 
   Heart, 
-  HeartOff,
   Search,
   Clock,
   Calendar,
-  Play,
   Download,
   Film,
   Tv,
@@ -17,46 +15,22 @@ import {
   AlertCircle,
   Loader2,
   ArrowLeft,
-  ChevronRight,
   Hash,
   Disc3,
   Twitter,
   Send,
   MessageCircle,
-  Globe,
+  Info,
   Shield,
   FileText,
   Mail,
-  Menu,
-  X,
   PlayCircle,
-  Info,
   BookOpen,
-  MonitorPlay,
-  ChevronLeft,
-  ChevronRight as ChevronRightIcon,
-  Maximize2,
-  Minimize2,
-  Volume2,
-  VolumeX,
-  ExternalLink,
-  Copy,
-  Check,
-  Share2,
-  MoreVertical,
-  Filter,
-  Grid,
-  List,
-  Sun,
-  Moon,
-  Globe2,
-  Youtube,
-  Twitch,
-  Facebook,
-  Instagram,
-  Github,
-  Linkedin
+  MonitorPlay
 } from 'lucide-react'
+
+// Import Loading Page
+import LoadingPage from './components/LoadingPage'
 
 const API_BASE = 'https://www.sankavollerei.com/anime/neko'
 
@@ -341,6 +315,9 @@ function App() {
 
   return (
     <div className="app">
+      {/* Tampilkan LoadingPage saat loading dan tidak dalam mode detail */}
+      {loading && !showDetail && <LoadingPage />}
+
       {showDetail && selectedAnime ? (
         <div className="detail-page">
           <header className="detail-header-nav">
@@ -356,6 +333,7 @@ function App() {
             </div>
           </header>
 
+          {/* Loading di detail page tetap menggunakan spinner biasa */}
           {loading ? (
             <div className="loading">
               <Loader2 size={48} className="spinner" />
@@ -439,262 +417,258 @@ function App() {
           )}
         </div>
       ) : (
-        <>
-          <header className="main-header">
-            <div className="logo">
-              <Film size={28} className="logo-icon" />
-              <span className="logo-text">LuminNhent4i</span>
-            </div>
-          </header>
+        /* Hanya tampilkan konten utama jika tidak loading */
+        !loading && (
+          <>
+            <header className="main-header">
+              <div className="logo">
+                <Film size={28} className="logo-icon" />
+                <span className="logo-text">LuminNhent4i</span>
+              </div>
+            </header>
 
-          {(currentPage === 'latest' || currentPage === 'release') && bannerData.length > 0 && (
-            <div className="banner-container">
-              <div className="banner-slider" style={{ transform: `translateX(-${bannerIndex * 100}%)` }}>
-                {bannerData.map((anime, index) => (
-                  <div 
-                    key={index} 
-                    className="banner-slide"
-                    onClick={() => loadDetail(anime.link || anime.url)}
-                  >
-                    <img 
-                      src={proxyImage(anime.image || anime.img)} 
-                      alt={anime.title}
-                      className="banner-image"
-                      onError={(e) => e.target.style.display = 'none'}
+            {(currentPage === 'latest' || currentPage === 'release') && bannerData.length > 0 && (
+              <div className="banner-container">
+                <div className="banner-slider" style={{ transform: `translateX(-${bannerIndex * 100}%)` }}>
+                  {bannerData.map((anime, index) => (
+                    <div 
+                      key={index} 
+                      className="banner-slide"
+                      onClick={() => loadDetail(anime.link || anime.url)}
+                    >
+                      <img 
+                        src={proxyImage(anime.image || anime.img)} 
+                        alt={anime.title}
+                        className="banner-image"
+                        onError={(e) => e.target.style.display = 'none'}
+                      />
+                      <div className="banner-content">
+                        <h2 className="banner-title">{anime.title}</h2>
+                        <p className="banner-info">
+                          {anime.upload || anime.duration || 'Click to watch'}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="banner-dots">
+                  {bannerData.map((_, index) => (
+                    <div
+                      key={index}
+                      className={`banner-dot ${index === bannerIndex ? 'active' : ''}`}
+                      onClick={() => setBannerIndex(index)}
                     />
-                    <div className="banner-content">
-                      <h2 className="banner-title">{anime.title}</h2>
-                      <p className="banner-info">
-                        {anime.upload || anime.duration || 'Click to watch'}
-                      </p>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="container">
+              <div className="page-header">
+                <PageIcon size={24} className="page-icon" />
+                <h1 className="page-title">{currentPageInfo.title}</h1>
+              </div>
+
+              <div className="search-section">
+                <div className="search-bar">
+                  <Search size={20} className="search-icon" />
+                  <input
+                    type="text"
+                    className="search-input"
+                    placeholder="Search anime..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyPress={handleSearchKeyPress}
+                  />
+                  <button className="search-btn" onClick={performSearch}>
+                    Search
+                  </button>
+                </div>
+              </div>
+
+              {error && !loading && (
+                <div className="error">
+                  <AlertCircle size={24} />
+                  <h3>{error}</h3>
+                </div>
+              )}
+
+              {!loading && !error && (
+                <>
+                  {animeData.length === 0 ? (
+                    <div className="empty-state">
+                      <Tv size={64} className="empty-icon" />
+                      <p className="empty-text">No anime found</p>
+                    </div>
+                  ) : (
+                    <div className="anime-grid">
+                      {animeData.map((anime, index) => {
+                        const imageUrl = anime.image || anime.img
+                        const animeUrl = anime.link || anime.url
+                        const duration = anime.duration
+                        const uploadDate = anime.upload
+                        const genres = anime.genre || []
+
+                        return (
+                          <div key={index} className="anime-card">
+                            <div 
+                              className="card-image-wrapper"
+                              onClick={() => loadDetail(animeUrl)}
+                            >
+                              {getBadge(anime.title)}
+                              
+                              <button
+                                className={`favorite-btn ${isFavorite(anime) ? 'active' : ''}`}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  toggleFavorite(anime)
+                                }}
+                              >
+                                {isFavorite(anime) ? <Heart size={18} fill="currentColor" /> : <Heart size={18} />}
+                              </button>
+
+                              {duration && (
+                                <div className="card-duration"><Clock size={14} /> {duration}</div>
+                              )}
+
+                              <img
+                                src={proxyImage(imageUrl)}
+                                alt={anime.title}
+                                className="card-image"
+                                loading="lazy"
+                                onError={(e) => e.target.style.display = 'none'}
+                              />
+                            </div>
+
+                            <div 
+                              className="card-content"
+                              onClick={() => loadDetail(animeUrl)}
+                            >
+                              <div className="card-title">{anime.title}</div>
+                              
+                              {uploadDate && (
+                                <div className="card-info">
+                                  <Calendar size={14} /> {uploadDate}
+                                </div>
+                              )}
+
+                              {genres.length > 0 && (
+                                <div className="genre-pills">
+                                  {genres.slice(0, 3).map((genre, idx) => (
+                                    genre && <span key={idx} className="genre-pill"><Hash size={10} /> {genre}</span>
+                                  ))}
+                                  {genres.length > 3 && (
+                                    <span className="genre-pill">+{genres.length - 3}</span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            <nav className="bottom-nav">
+              <button
+                className={`nav-item ${currentPage === 'latest' ? 'active' : ''}`}
+                onClick={() => handleNavigation('latest')}
+              >
+                <Home size={20} />
+                <span>Latest</span>
+              </button>
+
+              <button
+                className={`nav-item ${currentPage === 'release' ? 'active' : ''}`}
+                onClick={() => handleNavigation('release')}
+              >
+                <Flame size={20} />
+                <span>Release</span>
+              </button>
+
+              <button
+                className={`nav-item ${currentPage === 'favorites' ? 'active' : ''}`}
+                onClick={() => handleNavigation('favorites')}
+              >
+                <Star size={20} />
+                <span>Favorites</span>
+                {favorites.length > 0 && (
+                  <span className="favorite-badge">{favorites.length}</span>
+                )}
+              </button>
+            </nav>
+
+            <footer className="main-footer">
+              <div className="footer-container">
+                <div className="footer-top">
+                  <div className="footer-brand">
+                    <div className="footer-logo">
+                      <Film size={24} className="logo-icon" />
+                      <span className="logo-text">LuminNhent4i</span>
+                    </div>
+                    <p className="footer-tagline">Your ultimate destination for anime streaming with Indonesian subtitles</p>
+                  </div>
+
+                  <div className="footer-links">
+                    <div className="footer-column">
+                      <h4>Browse</h4>
+                      <ul>
+                        <li><a href="#latest"><Home size={14} /> Latest Anime</a></li>
+                        <li><a href="#release"><Flame size={14} /> New Releases</a></li>
+                        <li><a href="#popular"><Star size={14} /> Popular</a></li>
+                        <li><a href="#favorites"><Heart size={14} /> My Favorites</a></li>
+                      </ul>
+                    </div>
+
+                    <div className="footer-column">
+                      <h4>Genres</h4>
+                      <ul>
+                        <li><a href="#action"><Hash size={14} /> Action</a></li>
+                        <li><a href="#romance"><Hash size={14} /> Romance</a></li>
+                        <li><a href="#comedy"><Hash size={14} /> Comedy</a></li>
+                        <li><a href="#drama"><Hash size={14} /> Drama</a></li>
+                      </ul>
+                    </div>
+
+                    <div className="footer-column">
+                      <h4>Info</h4>
+                      <ul>
+                        <li><a href="#about"><Info size={14} /> About Us</a></li>
+                        <li><a href="#contact"><Mail size={14} /> Contact</a></li>
+                        <li><a href="#privacy"><Shield size={14} /> Privacy Policy</a></li>
+                        <li><a href="#terms"><FileText size={14} /> Terms of Service</a></li>
+                      </ul>
                     </div>
                   </div>
-                ))}
-              </div>
-              
-              <div className="banner-dots">
-                {bannerData.map((_, index) => (
-                  <div
-                    key={index}
-                    className={`banner-dot ${index === bannerIndex ? 'active' : ''}`}
-                    onClick={() => setBannerIndex(index)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="container">
-            <div className="page-header">
-              <PageIcon size={24} className="page-icon" />
-              <h1 className="page-title">{currentPageInfo.title}</h1>
-            </div>
-
-            <div className="search-section">
-              <div className="search-bar">
-                <Search size={20} className="search-icon" />
-                <input
-                  type="text"
-                  className="search-input"
-                  placeholder="Search anime..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={handleSearchKeyPress}
-                />
-                <button className="search-btn" onClick={performSearch}>
-                  Search
-                </button>
-              </div>
-            </div>
-
-            {loading && (
-              <div className="loading">
-                <Loader2 size={48} className="spinner" />
-                <p className="loading-text">Loading...</p>
-              </div>
-            )}
-
-            {error && !loading && (
-              <div className="error">
-                <AlertCircle size={24} />
-                <h3>{error}</h3>
-              </div>
-            )}
-
-            {!loading && !error && (
-              <>
-                {animeData.length === 0 ? (
-                  <div className="empty-state">
-                    <Tv size={64} className="empty-icon" />
-                    <p className="empty-text">No anime found</p>
-                  </div>
-                ) : (
-                  <div className="anime-grid">
-                    {animeData.map((anime, index) => {
-                      const imageUrl = anime.image || anime.img
-                      const animeUrl = anime.link || anime.url
-                      const duration = anime.duration
-                      const uploadDate = anime.upload
-                      const genres = anime.genre || []
-
-                      return (
-                        <div key={index} className="anime-card">
-                          <div 
-                            className="card-image-wrapper"
-                            onClick={() => loadDetail(animeUrl)}
-                          >
-                            {getBadge(anime.title)}
-                            
-                            <button
-                              className={`favorite-btn ${isFavorite(anime) ? 'active' : ''}`}
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                toggleFavorite(anime)
-                              }}
-                            >
-                              {isFavorite(anime) ? <Heart size={18} fill="currentColor" /> : <Heart size={18} />}
-                            </button>
-
-                            {duration && (
-                              <div className="card-duration"><Clock size={14} /> {duration}</div>
-                            )}
-
-                            <img
-                              src={proxyImage(imageUrl)}
-                              alt={anime.title}
-                              className="card-image"
-                              loading="lazy"
-                              onError={(e) => e.target.style.display = 'none'}
-                            />
-                          </div>
-
-                          <div 
-                            className="card-content"
-                            onClick={() => loadDetail(animeUrl)}
-                          >
-                            <div className="card-title">{anime.title}</div>
-                            
-                            {uploadDate && (
-                              <div className="card-info">
-                                <Calendar size={14} /> {uploadDate}
-                              </div>
-                            )}
-
-                            {genres.length > 0 && (
-                              <div className="genre-pills">
-                                {genres.slice(0, 3).map((genre, idx) => (
-                                  genre && <span key={idx} className="genre-pill"><Hash size={10} /> {genre}</span>
-                                ))}
-                                {genres.length > 3 && (
-                                  <span className="genre-pill">+{genres.length - 3}</span>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-
-          <nav className="bottom-nav">
-            <button
-              className={`nav-item ${currentPage === 'latest' ? 'active' : ''}`}
-              onClick={() => handleNavigation('latest')}
-            >
-              <Home size={20} />
-              <span>Latest</span>
-            </button>
-
-            <button
-              className={`nav-item ${currentPage === 'release' ? 'active' : ''}`}
-              onClick={() => handleNavigation('release')}
-            >
-              <Flame size={20} />
-              <span>Release</span>
-            </button>
-
-            <button
-              className={`nav-item ${currentPage === 'favorites' ? 'active' : ''}`}
-              onClick={() => handleNavigation('favorites')}
-            >
-              <Star size={20} />
-              <span>Favorites</span>
-              {favorites.length > 0 && (
-                <span className="favorite-badge">{favorites.length}</span>
-              )}
-            </button>
-          </nav>
-
-          <footer className="main-footer">
-            <div className="footer-container">
-              <div className="footer-top">
-                <div className="footer-brand">
-                  <div className="footer-logo">
-                    <Film size={24} className="logo-icon" />
-                    <span className="logo-text">LuminNhent4i</span>
-                  </div>
-                  <p className="footer-tagline">Your ultimate destination for anime streaming with Indonesian subtitles</p>
                 </div>
 
-                <div className="footer-links">
-                  <div className="footer-column">
-                    <h4>Browse</h4>
-                    <ul>
-                      <li><a href="#latest"><Home size={14} /> Latest Anime</a></li>
-                      <li><a href="#release"><Flame size={14} /> New Releases</a></li>
-                      <li><a href="#popular"><Star size={14} /> Popular</a></li>
-                      <li><a href="#favorites"><Heart size={14} /> My Favorites</a></li>
-                    </ul>
+                <div className="footer-divider"></div>
+
+                <div className="footer-bottom">
+                  <div className="footer-copyright">
+                    <p>© {new Date().getFullYear()} LuminNhent4i. All Rights Reserved.</p>
+                    <p className="footer-disclaimer">
+                      <Info size={12} /> All anime content is provided by third-party sources. We do not host any files on our servers.
+                    </p>
                   </div>
 
-                  <div className="footer-column">
-                    <h4>Genres</h4>
-                    <ul>
-                      <li><a href="#action"><Hash size={14} /> Action</a></li>
-                      <li><a href="#romance"><Hash size={14} /> Romance</a></li>
-                      <li><a href="#comedy"><Hash size={14} /> Comedy</a></li>
-                      <li><a href="#drama"><Hash size={14} /> Drama</a></li>
-                    </ul>
-                  </div>
-
-                  <div className="footer-column">
-                    <h4>Info</h4>
-                    <ul>
-                      <li><a href="#about"><Info size={14} /> About Us</a></li>
-                      <li><a href="#contact"><Mail size={14} /> Contact</a></li>
-                      <li><a href="#privacy"><Shield size={14} /> Privacy Policy</a></li>
-                      <li><a href="#terms"><FileText size={14} /> Terms of Service</a></li>
-                    </ul>
+                  <div className="footer-social">
+                    <p className="footer-powered">Powered by Sanka Vollerei</p>
+                    <div className="social-links">
+                      <a href="#" aria-label="Discord"><MessageCircle size={18} /></a>
+                      <a href="#" aria-label="Twitter"><Twitter size={18} /></a>
+                      <a href="#" aria-label="Telegram"><Send size={18} /></a>
+                    </div>
                   </div>
                 </div>
               </div>
-
-              <div className="footer-divider"></div>
-
-              <div className="footer-bottom">
-                <div className="footer-copyright">
-                  <p>© {new Date().getFullYear()} LuminNhent4i. All Rights Reserved.</p>
-                  <p className="footer-disclaimer">
-                    <Info size={12} /> All anime content is provided by third-party sources. We do not host any files on our servers.
-                  </p>
-                </div>
-
-                <div className="footer-social">
-                  <p className="footer-powered">Powered by Sanka Vollerei</p>
-                  <div className="social-links">
-                    <a href="#" aria-label="Discord"><MessageCircle size={18} /></a>
-                    <a href="#" aria-label="Twitter"><Twitter size={18} /></a>
-                    <a href="#" aria-label="Telegram"><Send size={18} /></a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </footer>
-        </>
+            </footer>
+          </>
+        )
       )}
     </div>
   )
