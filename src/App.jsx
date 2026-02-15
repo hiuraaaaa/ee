@@ -570,6 +570,73 @@ function App() {
               )}
             </button>
           </nav>
+
+          {/* Professional Footer */}
+          <footer className="main-footer">
+            <div className="footer-container">
+              <div className="footer-top">
+                <div className="footer-brand">
+                  <div className="footer-logo">
+                    <span className="logo-icon">🎌</span>
+                    <span className="logo-text">LuminNhent4i</span>
+                  </div>
+                  <p className="footer-tagline">Your ultimate destination for anime streaming with Indonesian subtitles</p>
+                </div>
+
+                <div className="footer-links">
+                  <div className="footer-column">
+                    <h4>Browse</h4>
+                    <ul>
+                      <li><a href="#latest">Latest Anime</a></li>
+                      <li><a href="#release">New Releases</a></li>
+                      <li><a href="#popular">Popular</a></li>
+                      <li><a href="#favorites">My Favorites</a></li>
+                    </ul>
+                  </div>
+
+                  <div className="footer-column">
+                    <h4>Genres</h4>
+                    <ul>
+                      <li><a href="#action">Action</a></li>
+                      <li><a href="#romance">Romance</a></li>
+                      <li><a href="#comedy">Comedy</a></li>
+                      <li><a href="#drama">Drama</a></li>
+                    </ul>
+                  </div>
+
+                  <div className="footer-column">
+                    <h4>Info</h4>
+                    <ul>
+                      <li><a href="#about">About Us</a></li>
+                      <li><a href="#contact">Contact</a></li>
+                      <li><a href="#privacy">Privacy Policy</a></li>
+                      <li><a href="#terms">Terms of Service</a></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div className="footer-divider"></div>
+
+              <div className="footer-bottom">
+                <div className="footer-copyright">
+                  <p>© {new Date().getFullYear()} LuminNhent4i. All Rights Reserved.</p>
+                  <p className="footer-disclaimer">
+                    All anime content is provided by third-party sources. We do not host any files on our servers.
+                  </p>
+                </div>
+
+                <div className="footer-social">
+                  <p className="footer-powered">Powered by Sanka Vollerei</p>
+                  <div className="social-links">
+                    <a href="#" aria-label="Discord">💬</a>
+                    <a href="#" aria-label="Twitter">🐦</a>
+                    <a href="#" aria-label="Telegram">📱</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </footer>
         </>
       )}
     </div>
