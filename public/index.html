@@ -520,7 +520,12 @@
     <script>
         // API Base
         const API_BASE = 'https://www.sankavollerei.com/anime/neko';
+        const CORS_PROXY = 'https://corsproxy.io/?';
         
+        // Helper untuk proxy image
+        function proxyImage(url) {
+            return CORS_PROXY + encodeURIComponent(url);
+        }
         // State
         let currentPage = 'latest';
         let currentData = [];
@@ -642,7 +647,7 @@
                 <div class="anime-card" onclick='loadDetail("${item.link}")'>
                     <div class="card-image-wrapper">
                         ${getBadge(item.title)}
-                        <img src="${item.image}" class="card-image" alt="${item.title}" onerror="this.style.display='none'">
+                        <img src="${proxyImage(item.image)}" class="card-image" alt="${item.title}" onerror="this.style.display='none'">
                     </div>
                     <div class="card-content">
                         <div class="card-title">${item.title}</div>
@@ -660,7 +665,7 @@
                     <div class="card-image-wrapper">
                         ${getBadge(item.title)}
                         ${item.duration ? `<div class="card-duration">⏱ ${item.duration}</div>` : ''}
-                        <img src="${item.img}" class="card-image" alt="${item.title}" onerror="this.style.display='none'">
+                        <img src="${proxyImage(item.img)}" class="card-image" alt="${item.title}" onerror="this.style.display='none'">
                     </div>
                     <div class="card-content">
                         <div class="card-title">${item.title}</div>
