@@ -55,8 +55,7 @@ import {
   Facebook,
   Instagram,
   Github,
-  Linkedin,
-  type IconNode as LucideIcon
+  Linkedin
 } from 'lucide-react'
 
 const API_BASE = 'https://www.sankavollerei.com/anime/neko'
