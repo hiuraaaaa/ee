@@ -76,7 +76,7 @@ const saveFavorites = (favorites) => {
   }
 }
 
-// Komponen Anime Card
+// Komponen Anime Card (untuk grid)
 const AnimeCard = ({ anime, isFavorite, onToggleFavorite, onClick }) => {
   const imageUrl = anime.image || anime.img
   const duration = anime.duration
@@ -132,6 +132,42 @@ const AnimeCard = ({ anime, isFavorite, onToggleFavorite, onClick }) => {
             )}
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+// Komponen Release Row Card (untuk horizontal scroll)
+const ReleaseRowCard = ({ anime, isFavorite, onToggleFavorite, onClick }) => {
+  return (
+    <div className="release-row-card" onClick={onClick}>
+      <div className="release-row-image">
+        <img src={proxyImage(anime.image || anime.img)} alt={anime.title} />
+        {anime.title.includes('[NEW') && (
+          <span className="release-row-badge">
+            <Sparkles size={8} /> NEW
+          </span>
+        )}
+        <button
+          className={`release-row-favorite ${isFavorite ? 'active' : ''}`}
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggleFavorite()
+          }}
+        >
+          <Heart size={12} fill={isFavorite ? "currentColor" : "none"} />
+        </button>
+      </div>
+      <div className="release-row-content">
+        <div className="release-row-title-text">{anime.title}</div>
+        <div className="release-row-meta">
+          <Clock size={8} /> {anime.duration || 'N/A'}
+        </div>
+        <div className="release-row-genres">
+          {anime.genre?.slice(0, 2).map((g, i) => (
+            <span key={i} className="release-row-genre">{g}</span>
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -221,7 +257,7 @@ function App() {
       // All releases dari multi-page (unique)
       const uniqueReleases = Array.from(
         new Map(allReleases.map(item => [item.link || item.url, item])).values()
-      ).slice(0, 16)
+      ).slice(0, 24) // Ambil 24 item untuk 3 baris
 
       // Popular (mix dari latest dan releases)
       const popularItems = [
@@ -442,6 +478,11 @@ function App() {
   const renderHomePage = () => {
     if (loading.home) return <LoadingPage />
 
+    // Bagi data releases menjadi 3 baris
+    const row1 = homeData.releases.slice(0, 8)
+    const row2 = homeData.releases.slice(8, 16)
+    const row3 = homeData.releases.slice(16, 24)
+
     return (
       <>
         {/* Banner hanya di HOME */}
@@ -531,8 +572,8 @@ function App() {
             )}
           </section>
 
-          {/* Section Releases with Special Layout */}
-          <section className="home-section release-special">
+          {/* Section Releases with Multi-Row Scroll */}
+          <section className="home-section">
             <div className="section-header">
               <h2 className="section-title">
                 <CalendarDays size={20} className="section-icon" />
@@ -547,47 +588,72 @@ function App() {
             </div>
 
             {homeData.releases.length > 0 && (
-              <div className="release-special-layout">
-                {/* Card Besar di Kiri */}
-                <div className="release-featured">
-                  <AnimeCard 
-                    anime={homeData.releases[0]}
-                    isFavorite={isFavorite(homeData.releases[0])}
-                    onToggleFavorite={() => toggleFavorite(homeData.releases[0])}
-                    onClick={() => loadDetail(homeData.releases[0].link || homeData.releases[0].url)}
-                  />
-                </div>
-
-                {/* Card Kecil Scroll Horizontal di Kanan */}
-                <div className="release-horizontal-scroll">
-                  {homeData.releases.slice(1, 8).map((anime, index) => (
-                    <div key={index} className="horizontal-card">
-                      <div className="horizontal-card-image" onClick={() => loadDetail(anime.link || anime.url)}>
-                        <img src={proxyImage(anime.image || anime.img)} alt={anime.title} />
-                        <button
-                          className={`favorite-btn-small ${isFavorite(anime) ? 'active' : ''}`}
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            toggleFavorite(anime)
-                          }}
-                        >
-                          <Heart size={12} fill={isFavorite(anime) ? "currentColor" : "none"} />
-                        </button>
-                      </div>
-                      <div className="horizontal-card-content" onClick={() => loadDetail(anime.link || anime.url)}>
-                        <h4 className="horizontal-card-title">{anime.title}</h4>
-                        <div className="horizontal-card-genres">
-                          {anime.genre?.slice(0, 2).map((g, i) => (
-                            <span key={i} className="genre-tag-mini">{g}</span>
-                          ))}
-                        </div>
-                        <div className="horizontal-card-meta">
-                          <Clock size={8} /> {anime.duration || 'N/A'}
-                        </div>
-                      </div>
+              <div className="release-multi-row">
+                {/* BARIS 1 */}
+                {row1.length > 0 && (
+                  <div className="release-row">
+                    <div className="release-row-header">
+                      <span className="release-row-title">
+                        <TrendingUp size={14} /> Baru Rilis #1
+                      </span>
                     </div>
-                  ))}
-                </div>
+                    <div className="release-row-scroll">
+                      {row1.map((anime, index) => (
+                        <ReleaseRowCard 
+                          key={`row1-${index}`}
+                          anime={anime}
+                          isFavorite={isFavorite(anime)}
+                          onToggleFavorite={() => toggleFavorite(anime)}
+                          onClick={() => loadDetail(anime.link || anime.url)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* BARIS 2 */}
+                {row2.length > 0 && (
+                  <div className="release-row">
+                    <div className="release-row-header">
+                      <span className="release-row-title">
+                        <TrendingUp size={14} /> Baru Rilis #2
+                      </span>
+                    </div>
+                    <div className="release-row-scroll">
+                      {row2.map((anime, index) => (
+                        <ReleaseRowCard 
+                          key={`row2-${index}`}
+                          anime={anime}
+                          isFavorite={isFavorite(anime)}
+                          onToggleFavorite={() => toggleFavorite(anime)}
+                          onClick={() => loadDetail(anime.link || anime.url)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* BARIS 3 */}
+                {row3.length > 0 && (
+                  <div className="release-row">
+                    <div className="release-row-header">
+                      <span className="release-row-title">
+                        <TrendingUp size={14} /> Baru Rilis #3
+                      </span>
+                    </div>
+                    <div className="release-row-scroll">
+                      {row3.map((anime, index) => (
+                        <ReleaseRowCard 
+                          key={`row3-${index}`}
+                          anime={anime}
+                          isFavorite={isFavorite(anime)}
+                          onToggleFavorite={() => toggleFavorite(anime)}
+                          onClick={() => loadDetail(anime.link || anime.url)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </section>
